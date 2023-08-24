@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jenkins-m2-pv
+  namespace: dan-ci-cd
+  labels:
+    app: jenkins
+    scope: m2
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 2Gi
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/jenkins-m2-pv/

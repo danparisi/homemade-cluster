@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-m2-pvc
+  namespace: dan-ci-cd
+spec:
+  storageClassName: manual
+  selector:
+    matchLabels:
+      app: jenkins
+      scope: m2
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

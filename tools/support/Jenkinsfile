@@ -1,0 +1,104 @@
+podTemplate(
+    containers: [
+        containerTemplate(
+            name: 'maven',
+            image: 'maven:3.8.3-openjdk-17',
+            command: '/bin/sh',
+            args: '-c "sleep 99d"',
+            envVars: [
+                containerEnvVar(key: 'DOCKER_HOST', value: "tcp://localhost:2375")
+            ]
+        )
+    ], volumes: [
+        persistentVolumeClaim(
+            mountPath: '/root/.m2/repository',
+            claimName: 'jenkins-m2-pvc',
+            readOnly: false
+        )]) {
+            podTemplate(
+                containers: [containerTemplate(
+                    image: 'docker:dind',
+                    name: 'docker-daemon',
+                    command: 'dockerd --host tcp://127.0.0.1:2375 --registry-mirror http://minikube.nexus-docker-proxy-http:30400 --insecure-registry minikube.nexus-docker-proxy-http:30400 --insecure-registry minikube.nexus-dan-docker-release-http:30500 --insecure-registry minikube.nexus-dan-docker-snapshot-http:30501 --insecure-registry minikube.nexus-dan-helm-release-http:30600 --insecure-registry minikube.nexus-dan-helm-snapshot-http:30601',
+                    privileged: true,
+                    ttyEnabled: true,
+                    envVars: [
+                        containerEnvVar(key: 'DOCKER_TLS_VERIFY', value: ""),
+                        containerEnvVar(key: 'DOCKER_TLS_CERTDIR', value: ""),
+                        containerEnvVar(key: 'DOCKER_HOST', value: "tcp://localhost:2375")
+                    ]
+            )], volumes: [
+                persistentVolumeClaim(
+                    mountPath: '/tmp',
+                    claimName: 'jenkins-docker-cache-pvc',
+                    readOnly: false
+                )
+            ]) {
+                 node(POD_LABEL) {
+
+                    stage('Checkout') {
+                        git branch: 'main', url: 'https://github.com/danparisi/dan-shop-core.git'
+                    }
+
+                    stage("Compilation and Analysis") {
+                         container('maven') {
+                             parallel 'Compilation': {
+                                 sh "mvn clean install -DskipTests"
+                             }, 'Static Analysis': {
+                                 stage("Checkstyle") {
+                                    echo "Skipping checkstyle analysis"
+                                 }
+                             }
+                         }
+                    }
+
+                    stage("Docker build") {
+                         container('maven') {
+                            sh "mvn dockerfile:build -Ddocker.repository.host=minikube.nexus-docker-dan-snapshot-http:30501"
+                         }
+                    }
+
+                    stage("Docker push") {
+                         container('maven') {
+                            sh "mvn dockerfile:push -Ddockerfile.username=jenkins -Ddockerfile.password=jenkins -Ddocker.repository.host=minikube.nexus-dan-docker-snapshot-http:30501"
+                         }
+                    }
+
+                    stage("Helm package") {
+                         container('maven') {
+                            sh "mvn helm:init helm:dependency-build helm:lint helm:package"
+                         }
+                    }
+
+                    stage("Helm push") {
+                         container('maven') {
+                            // https://github.com/helm/helm/issues/6324#issuecomment-1666787136
+                            // Workaround needed to let helm binary push to host resolved into a local address:
+
+                             sh '''
+                                    microdnf install -y dnsutils socat
+                                    HELM_REPOSITORY_RELEASE_HOST=$(mvn help:evaluate -Dexpression=helm.repository.release.host -q -DforceStdout)
+                                    HELM_REPOSITORY_RELEASE_PORT=$(mvn help:evaluate -Dexpression=helm.repository.release.port -q -DforceStdout)
+                                    HELM_REPOSITORY_SNAPSHOT_HOST=$(mvn help:evaluate -Dexpression=helm.repository.snapshot.host -q -DforceStdout)
+                                    HELM_REPOSITORY_SNAPSHOT_PORT=$(mvn help:evaluate -Dexpression=helm.repository.snapshot.port -q -DforceStdout)
+
+                                    HELM_REPOSITORY_RELEASE_HOST_IP=$(dig +short ${HELM_REPOSITORY_RELEASE_HOST} | head -n1)
+                                    HELM_REPOSITORY_SNAPSHOT_HOST_IP=$(dig +short ${HELM_REPOSITORY_SNAPSHOT_HOST} | head -n1)
+
+                                    socat TCP-LISTEN:${HELM_REPOSITORY_RELEASE_PORT},reuseaddr,fork TCP:${HELM_REPOSITORY_RELEASE_HOST_IP}:${HELM_REPOSITORY_RELEASE_PORT} &
+                                    socat TCP-LISTEN:${HELM_REPOSITORY_SNAPSHOT_PORT},reuseaddr,fork TCP:${HELM_REPOSITORY_SNAPSHOT_HOST_IP}:${HELM_REPOSITORY_SNAPSHOT_PORT} &
+                                '''
+
+                            // Setting repository to localhost as the TCP connection is redirected to the right host(s) from socat process (see above)
+                            sh 'mvn helm:package helm:registry-login helm:push -Dhelm.repository.release.host=localhost -Dhelm.repository.snapshot.host=localhost'
+                         }
+                    }
+
+                    stage("Helm upgrade") {
+                         container('maven') {
+                            sh 'mvn helm:upgrade -Dhelm.repository.release.host=localhost -Dhelm.repository.snapshot.host=localhost'
+                         }
+                    }
+                 }
+            }
+}

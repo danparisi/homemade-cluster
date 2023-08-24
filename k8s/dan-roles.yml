@@ -1,0 +1,48 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: k8s-discovery-client-role
+rules:
+  - apiGroups: [ "", "extensions", "apps" ]
+    resources: [ "secrets", "pods", "services", "endpoints" ]
+    verbs: [ "get", "list", "watch" ]
+---
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: k8s-jenkins-role
+rules:
+  - apiGroups: [ "", "extensions", "apps" ]
+    resources: [ "secrets", "deployments", "services" ]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
+
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: k8s-discovery-client-role-binding
+subjects:
+  - kind: ServiceAccount
+    name: default
+    apiGroup: ""
+roleRef:
+  kind: Role
+  name: k8s-discovery-client-role
+  apiGroup: ""
+
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: k8s-jenkins-role-binding
+subjects:
+  - kind: ServiceAccount
+    name: default
+    apiGroup: ""
+roleRef:
+  kind: Role
+  name: k8s-jenkins-role
+  apiGroup: ""

@@ -1,0 +1,51 @@
+nameOverride: nexus
+
+#service:
+#  enabled: true
+#  type: NodePort
+
+ingress:
+  enabled: false
+  ingressClassName: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  hostPath: /
+  hostRepo: minikube.nexus
+    #  tls:
+    #    - hosts:
+  #        - minikube.nexus
+  # tls:
+  #   - secretName: nexus-local-tls
+#  enabled: true
+#  paths: minikube.nexus
+
+persistence:
+  enabled: true
+  storageSize: 5Gi
+  existingClaim: nexus-pvc
+
+
+nexus:
+  env:
+    # https://help.sonatype.com/repomanager3/product-information/system-requirements
+    - name: INSTALL4J_ADD_VM_PARAMS
+      value: |-
+        -Xms600M -Xmx1000M
+        -XX:MaxDirectMemorySize=1000M
+        -XX:+UnlockExperimentalVMOptions
+        -XX:+UseCGroupMemoryLimitForHeap
+        -Djava.util.prefs.userRoot=/nexus-data/javaprefs
+    - name: NEXUS_SECURITY_RANDOMPASSWORD
+      value: "true"
+  resources:
+    # https://help.sonatype.com/repomanager3/product-information/system-requirements
+    requests:
+      cpu: 0.5
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 2.6Gi
+  livenessProbe:
+    initialDelaySeconds: 180
+  readinessProbe:
+    initialDelaySeconds: 120

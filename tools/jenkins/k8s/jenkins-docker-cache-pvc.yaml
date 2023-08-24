@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-docker-cache-pvc
+  namespace: dan-ci-cd
+spec:
+  storageClassName: manual
+  selector:
+    matchLabels:
+      app: jenkins
+      scope: docker-cache
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

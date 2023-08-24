@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jenkins-pv
+  namespace: dan-ci-cd
+  labels:
+    app: jenkins
+    scope: core
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 5Gi
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/jenkins-pv/

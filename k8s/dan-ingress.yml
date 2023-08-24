@@ -1,0 +1,97 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dan-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  #  defaultBackend:
+  #    service:
+  #      name: default-http-backend
+  #      port:
+  #        number: 80
+  rules:
+    ######### CI / CD Tools #########
+    - host: minikube.jenkins
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: jenkins
+                port:
+                  number: 8080
+    - host: minikube.nexus-docker-proxy-http
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-docker-proxy-http
+                port:
+                  number: 30400
+    - host: minikube.nexus-dan-docker-release-http
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-dan-docker-release-http
+                port:
+                  number: 30500
+    - host: minikube.nexus-dan-docker-snapshot-http
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-dan-docker-snapshot-http
+                port:
+                  number: 30501
+
+    - host: minikube.nexus-dan-helm-release-http
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-dan-helm-release-http
+                port:
+                  number: 30600
+    - host: minikube.nexus-dan-helm-snapshot-http
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-dan-helm-snapshot-http
+                port:
+                  number: 30601
+
+    - host: minikube.nexus
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-service-web-ui
+                port:
+                  number: 30000
+    ######### Applications #########
+    - host: minikube.dan-shop
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: dan-shop-core
+                port:
+                  number: 8080

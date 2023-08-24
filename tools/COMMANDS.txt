@@ -1,0 +1,7 @@
+Copy file from local machine to minikube volumes:
+    scp -r -i $(minikube ssh-key) /home/daniele/Downloads/jenkins-pv docker@$(minikube ip):/data/jenkins-pv
+
+scp -r -i $(minikube ssh-key) /home/daniele/Downloads/data docker@$(minikube ip):/data
+
+scp -r -i $(minikube ssh-key) docker@$(minikube ip):/data /home/daniele/Downloads/data
+

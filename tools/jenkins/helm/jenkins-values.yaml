@@ -1,0 +1,41 @@
+fsGroup: 0
+runAsUser: 0
+
+controller:
+  nodePort: 32000
+  serviceType: NodePort
+  jenkinsUrl: http://minikube.info/jenkins/
+  podSecurityContextOverride:
+    runAsUser: 1000
+    runAsGroup: 1000
+    runAsNonRoot: true
+    fsGroup: 1000
+    fsGroupChangePolicy: "OnRootMismatch"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  ingress:
+    enabled: false
+  #    paths: [ ]
+  #    apiVersion: "networking.k8s.io/v1"
+  #    hostName: minikube.jenkins
+
+  installPlugins:
+    - git:latest
+    - thinBackup:latest
+    - kubernetes:latest
+    - workflow-aggregator:latest
+    - configuration-as-code:latest
+
+persistence:
+  enabled: true
+  existingClaim: jenkins-pvc
+
+serviceAccount:
+  create: false
+  name: jenkins
+  annotations: { }

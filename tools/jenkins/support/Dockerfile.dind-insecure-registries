@@ -1,0 +1,6 @@
+FROM docker:dind
+
+USER root
+
+ADD daemon.json /etc/docker/daemon.json
+RUN chmod 777 /etc/docker/daemon.json
