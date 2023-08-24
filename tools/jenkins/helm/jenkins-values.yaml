@@ -18,6 +18,16 @@ controller:
     limits:
       cpu: 500m
       memory: 1Gi
+  probes:
+    startupProbe:
+      httpGet:
+        path: '{{ default "" .Values.controller.jenkinsUriPrefix }}/login'
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 12
+      initialDelaySeconds: 30
+
   ingress:
     enabled: false
   #    paths: [ ]

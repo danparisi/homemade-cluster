@@ -1,3 +1,6 @@
+Chart documentation:
+https://github.com/jenkinsci/helm-charts/blob/main/charts/jenkins/README.md
+
 Installation:
     1. Apply configuration in k8s/
     2.
