@@ -1,4 +1,4 @@
-apiVersion: extensions/v1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: fluent-bit
@@ -8,6 +8,8 @@ metadata:
     version: v1
     kubernetes.io/cluster-service: "true"
 spec:
+  selector:
+
   template:
     metadata:
       labels:
@@ -23,7 +25,7 @@ spec:
             - containerPort: 32499
           env:
             - name: FLUENT_ELASTICSEARCH_HOST
-              value: "0.0.0.0"
+              value: "elasticsearch-es-http"
             - name: FLUENT_ELASTICSEARCH_PORT
               value: "9200"
           volumeMounts:

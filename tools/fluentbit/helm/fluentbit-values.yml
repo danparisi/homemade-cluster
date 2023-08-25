@@ -1,0 +1,17 @@
+config:
+  ## https://docs.fluentbit.io/manual/pipeline/outputs
+  outputs: |
+    [OUTPUT]
+        Name es
+        Match kube.*
+        Host elasticsearch-es-internal-http
+        Logstash_Format On
+        Retry_Limit False
+
+    [OUTPUT]
+        Name es
+        Match host.*
+        Host elasticsearch-es-internal-http
+        Logstash_Format On
+        Logstash_Prefix node
+        Retry_Limit False
