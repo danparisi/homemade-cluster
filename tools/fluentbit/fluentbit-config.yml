@@ -49,6 +49,7 @@ data:
         Logstash_Prefix log
         Replace_Dots    On
         Retry_Limit     False
+        Suppress_Type_Name On
     parsers.conf: |
     [PARSER]
         Name   json
