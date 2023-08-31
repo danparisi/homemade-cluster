@@ -4,7 +4,7 @@ runAsUser: 0
 controller:
   nodePort: 32000
   serviceType: NodePort
-  jenkinsUrl: http://minikube.info/jenkins/
+  jenkinsUrl: http://minikube.jenkins/
   podSecurityContextOverride:
     runAsUser: 1000
     runAsGroup: 1000

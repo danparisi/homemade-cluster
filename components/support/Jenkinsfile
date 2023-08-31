@@ -43,7 +43,7 @@ podTemplate(
                     stage("Compilation and Analysis") {
                          container('maven') {
                              parallel 'Compilation': {
-                                 sh "mvn clean install -DskipTests"
+                                 sh "mvn clean install"
                              }, 'Static Analysis': {
                                  stage("Checkstyle") {
                                     echo "Skipping checkstyle analysis"
