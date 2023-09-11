@@ -56,6 +56,7 @@ set +o nounset #turning this off, will allow to test the NON-EMPTYNESS of variab
 show_info() {
   KIBANA_PASSWORD=$(kubectl get secret elasticsearch-es-elastic-user -o=jsonpath='{.data.elastic}' | base64 --decode; echo)
   JENKINS_PASSWORD=$(kubectl exec -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo)
+  GRAFANA_PASSWORD=$(kubectl get secret --namespace dan-ci-cd grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
 
   common::title "Tools info"
   common::bold "Accessing Jenkins:"
@@ -65,9 +66,20 @@ show_info() {
   common::underline "minikube service nexus-service-web-ui -n dan-ci-cd --url"
   common::paragraph "User: admin Default password: kubectl exec -it svc/nexus-rm -- /bin/cat /nexus-data/admin.password && echo"
 
-  common::bold "Accessing kibana:"
+  common::bold "Accessing Kibana:"
   common::underline "k port-forward svc/kibana-kb-http 5601"
   common::paragraph "User: elastic Password: ${KIBANA_PASSWORD}"
+
+  common::bold "Accessing Grafana:"
+  common::underline "k port-forward svc/kibana-kb-http 5601"
+  common::paragraph "User: admin Password: ${GRAFANA_PASSWORD}"
+
+  common::bold "Accessing Prometheus:"
+  common::underline "k port-forward prometheus-server-7c777fbb9b-98b2c 9090"
+  common::paragraph "Note: in Status -> Targets menu, you should see all your services being scraped."
+
+  common::bold "Accessing Zipkin:"
+  common::paragraph "k port-forward svc/zipkin 9411"
 }
 
 show_next_steps() {
@@ -86,7 +98,6 @@ show_next_steps() {
   common::bold "Create Kibana indexes:"
   common::text "Pattern: kube-*."
   common::paragraph "Pattern: service-*."
-
 
   common::title "Testing kafka"
   common::bold "Create a producer:"
@@ -119,7 +130,11 @@ common::log "Adding helm repositories..."
 helm repo add elastic https://helm.elastic.co
 helm repo add jenkins https://charts.jenkins.io
 helm repo add fluent https://fluent.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add openzipkin https://openzipkin.github.io/zipkin
 helm repo add sonatype https://sonatype.github.io/helm3-charts/
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
 
 common::log "Creating Minikube cluster..."
 minikube start \
@@ -142,10 +157,10 @@ kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply
 kubectl ns "${NAMESPACE}"
 
 common::log "Creating cluster ingress..."
-kubectl apply -n "${NAMESPACE}" -f k8s/dan-ingress.yml
+kubectl apply -n "${NAMESPACE}" -f k8s/dan-ingress.yaml
 
 common::log "Creating cluster roles..."
-kubectl apply -n "${NAMESPACE}" -f k8s/dan-roles.yml
+kubectl apply -n "${NAMESPACE}" -f k8s/dan-roles.yaml
 
 common::log "Installing Nexus..."
 kubectl apply -n "${NAMESPACE}" -f components/nexus/k8s
@@ -164,11 +179,21 @@ helm upgrade --install -n "${NAMESPACE}" elastic-operator elastic/eck-operator
 kubectl apply -n "${NAMESPACE}" -f components/elk/k8s
 
 common::log "Installing Fluentbit..."
-helm upgrade --install -n "${NAMESPACE}" fluent-bit fluent/fluent-bit -f components/fluentbit/helm/fluentbit-values.yml
+helm upgrade --install -n "${NAMESPACE}" fluent-bit fluent/fluent-bit -f components/fluentbit/helm/fluentbit-values.yaml
 
 common::log "Creating Kafka cluster..."
-helm install strimzi-cluster-operator oci://quay.io/strimzi-helm/strimzi-kafka-operator
+helm upgrade --install -n "${NAMESPACE}" strimzi-cluster-operator oci://quay.io/strimzi-helm/strimzi-kafka-operator
 kubectl apply -n "${NAMESPACE}" -f components/kafka/k8s
+
+common::log "Installing Prometheus..."
+helm upgrade --install -n "${NAMESPACE}" prometheus prometheus-community/prometheus -f components/prometheus/helm/prometheus-values.yaml
+
+common::log "Installing Grafana..."
+helm upgrade --install -n "${NAMESPACE}" grafana grafana/grafana -f components/grafana/helm/grafana-values.yaml
+
+common::log "Installing Zipkin..."
+helm upgrade --install -n "${NAMESPACE}" zipkin openzipkin/zipkin -f components/zipkin/helm/zipkin-values.yaml
+
 
 common::lognewline "Done!"
 

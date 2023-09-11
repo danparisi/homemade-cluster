@@ -1,0 +1,77 @@
+luaScripts:
+  filters.lua: |
+    function dedot(tag, timestamp, record)
+      if record["kubernetes"] == nil then
+        return 0, 0, 0
+      end
+      if (record["kubernetes"]["labels"]["app"] ~= nil and type(record["kubernetes"]["labels"]["app"]) ~= "table") then
+        record["kubernetes"]["labels"]["app"] = {appName = record["kubernetes"]["labels"]["app"]}
+      end
+    
+      dedot_keys(record["kubernetes"]["annotations"])
+      dedot_keys(record["kubernetes"]["labels"])
+    
+      return 1, timestamp, record
+    end
+    
+    function dedot_keys(map)
+      if map == nil then
+        return
+      end
+    
+      local new_map = {}
+      local changed_keys = {}
+      for k, v in pairs(map) do
+        local deslashed = string.gsub(k, "%/", "_")
+        local dedotted = string.gsub(deslashed, "%.", "_")
+        if dedotted ~= k then
+          new_map[dedotted] = v
+          changed_keys[k] = true
+        end
+      end
+    
+      for k in pairs(changed_keys) do
+        map[k] = nil
+      end
+    
+      for k, v in pairs(new_map) do
+        map[k] = v
+      end
+    end
+
+config:
+  ## https://docs.fluentbit.io/manual/pipeline/outputs
+
+  filters: |
+    [FILTER]
+        Name          parser
+        Match         service.*
+        Key_Name      payload
+        Parser        json        
+        Preserve_Key  Off
+        Reserve_Data  Off
+
+  inputs: |
+    [INPUT]
+        Name        kafka
+        Tag         service.*
+        Brokers     dan-kafka-cluster-kafka-bootstrap:9092
+        Topics      dan-service-logs
+        poll_ms     100
+
+  outputs: |
+    [OUTPUT]
+        Name es
+        Match *
+        Host elasticsearch-es-internal-http
+        Logstash_Format On
+        Logstash_Prefix service
+        Trace_Error On
+        Retry_Limit False
+        Suppress_Type_Name On
+        Generate_ID On
+        Write_Operation upsert
+
+    [OUTPUT]
+        Name stdout
+        Match *
