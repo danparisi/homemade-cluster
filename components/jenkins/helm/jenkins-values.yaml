@@ -36,6 +36,7 @@ controller:
 
   installPlugins:
     - git:latest
+    - blueocean:latest
     - thinBackup:latest
     - kubernetes:latest
     - workflow-aggregator:latest
