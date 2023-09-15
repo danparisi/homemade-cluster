@@ -79,7 +79,12 @@ show_info() {
   common::paragraph "Note: in Status -> Targets menu, you should see all your services being scraped."
 
   common::bold "Accessing Zipkin:"
-  common::paragraph "k port-forward svc/zipkin 9411"
+  common::underline "k port-forward svc/zipkin 9411"
+  common::paragraph "http://localhost:9411/zipkin/"
+
+  common::bold "Accessing Kafka UI:"
+  common::underline "k port-forward svc/kafka-ui 8080:80"
+  common::paragraph "http://localhost:8080/"
 }
 
 show_next_steps() {
@@ -133,6 +138,7 @@ helm repo add fluent https://fluent.github.io/helm-charts
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo add openzipkin https://openzipkin.github.io/zipkin
 helm repo add sonatype https://sonatype.github.io/helm3-charts/
+helm repo add kafka-ui https://provectus.github.io/kafka-ui-charts
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 
@@ -193,6 +199,9 @@ helm upgrade --install -n "${NAMESPACE}" grafana grafana/grafana -f components/g
 
 common::log "Installing Zipkin..."
 helm upgrade --install -n "${NAMESPACE}" zipkin openzipkin/zipkin -f components/zipkin/helm/zipkin-values.yaml
+
+common::log "Installing Kafka UI..."
+helm upgrade --install -n "${NAMESPACE}" kafka-ui kafka-ui/kafka-ui -f components/kafka-ui/helm/kafka-ui-values.yaml
 
 
 common::lognewline "Done!"
