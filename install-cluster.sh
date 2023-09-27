@@ -98,7 +98,9 @@ show_next_steps() {
   common::paragraph "Type: docker. Name: nexus-dan-docker-release-http. Port: 30500"
   common::paragraph "Type: docker. Name: nexus-dan-docker-snapshot-http. Port: 30501"
   common::text "Type: docker proxy. Name: nexus-docker-proxy-http. Port: 30400"
-  common::paragraph "More info: https://mtijhof.wordpress.com/2018/07/23/using-nexus-oss-as-a-proxy-cache-for-docker-images/"
+  common::text "For docker hub mirror (proxy), add security -> realms -> Docker Bearer Token Realm"
+  common::text "More info: https://mtijhof.wordpress.com/2018/07/23/using-nexus-oss-as-a-proxy-cache-for-docker-images/"
+  common::paragraph "Add (weekly) cleanup policy"
 
   common::bold "Create Kibana indexes:"
   common::text "Pattern: kube-*."
@@ -136,6 +138,7 @@ helm repo add elastic https://helm.elastic.co
 helm repo add jenkins https://charts.jenkins.io
 helm repo add fluent https://fluent.github.io/helm-charts
 helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add hashicorp https://helm.releases.hashicorp.com
 helm repo add openzipkin https://openzipkin.github.io/zipkin
 helm repo add sonatype https://sonatype.github.io/helm3-charts/
 helm repo add kafka-ui https://provectus.github.io/kafka-ui-charts
@@ -203,6 +206,8 @@ helm upgrade --install -n "${NAMESPACE}" zipkin openzipkin/zipkin -f components/
 common::log "Installing Kafka UI..."
 helm upgrade --install -n "${NAMESPACE}" kafka-ui kafka-ui/kafka-ui -f components/kafka-ui/helm/kafka-ui-values.yaml
 
+common::log "Installing Consul..."
+helm upgrade --install -n "${NAMESPACE}" consul hashicorp/consul -f components/consul/helm/consul-values.yaml
 
 common::lognewline "Done!"
 
