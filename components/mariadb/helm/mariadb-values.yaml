@@ -1,0 +1,21 @@
+primary:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256M
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+secondary:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256M
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Following field is required for Helm upgrading this chart. Find a way to use secrets or env. variable, or..
+auth:
+  rootPassword: LNqRhw5m1w

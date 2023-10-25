@@ -4,59 +4,18 @@ set -e
 set -o errexit
 set -o nounset
 
-function common::log () {
-  GREEN="$1"
-  shift
-  if [ -t 2 ] ; then
-    echo -e "[$(date +%H:%M:%S)] \e[1m \x1B[97m* \x1B[92m${GREEN}\x1B[39m \e[0m $*" 1>&2
-  else
-    echo "* ${GREEN} $*" 1>&2
-  fi
-}
+PROJECT_DIRECTORY=$(pwd | sed 's/\(.*homemade-cluster\).*/\1/')
 
-function common::lognewline () {
-    common::log "$* \n"  >&2
-}
-
-function common::die () {
-    common::log "\e[31m[ ERROR ] \e[0m $*"  >&2
-    exit 1
-}
-
-function common::warn() {
-    common::log "\e[33m[ WARNING ]  \e[0m$*"
-}
-
-function common::debug() {
-    common::log "\e[39m[ DEBUG ]  \e[0m$*"
-}
-
-function common::bold(){
-    echo -e "\e[1m$*\e[0m"
-}
-
-function common::title(){
-    echo -e "\e[1m\x1B[92m************ $* ************\x1B[39m\e[0m"
-}
-
-function common::underline(){
-    echo -e "\e[4m$*\e[0m"
-}
-
-function common::text(){
-    echo -e "$*"
-}
-
-function common::paragraph(){
-    echo -e "$*\n"
-}
+source "$PROJECT_DIRECTORY/common/common.sh"
 
 set +o nounset #turning this off, will allow to test the NON-EMPTYNESS of variables without failing with 'unbound variable'
 
 show_info() {
   KIBANA_PASSWORD=$(kubectl get secret elasticsearch-es-elastic-user -o=jsonpath='{.data.elastic}' | base64 --decode; echo)
   JENKINS_PASSWORD=$(kubectl exec -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo)
+  MARIADB_PASSWORD=$(kubectl get secret --namespace dan-ci-cd mariadb -o jsonpath="{.data.mariadb-root-password}" | base64 -d)
   GRAFANA_PASSWORD=$(kubectl get secret --namespace dan-ci-cd grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
+  NEXUS_PASSWORD=$(kubectl exec svc/nexus-rm -- bash -c 'if test -f /nexus-data/admin.password; then /bin/cat /nexus-data/admin.password && echo; else echo "admin"; fi')
 
   common::title "Tools info"
   common::bold "Accessing Jenkins:"
@@ -64,7 +23,7 @@ show_info() {
 
   common::bold "Accessing Nexus:"
   common::underline "minikube service nexus-service-web-ui -n dan-ci-cd --url"
-  common::paragraph "User: admin Default password: kubectl exec -it svc/nexus-rm -- /bin/cat /nexus-data/admin.password && echo"
+  common::paragraph "User: admin Default password: ${NEXUS_PASSWORD}"
 
   common::bold "Accessing Kibana:"
   common::underline "k port-forward svc/kibana-kb-http 5601"
@@ -85,6 +44,11 @@ show_info() {
   common::bold "Accessing Kafka UI:"
   common::underline "k port-forward svc/kafka-ui 8080:80"
   common::paragraph "http://localhost:8080/"
+
+  common::bold "Accessing MariaDB:"
+  common::underline "k port-forward svc/mariadb 3306"
+  common::text "User: admin root: ${MARIADB_PASSWORD}"
+  common::paragraph "mysql -u root -P 3306 -h localhost --protocol=TCP --password=${MARIADB_PASSWORD}"
 }
 
 show_next_steps() {
@@ -190,9 +154,12 @@ kubectl apply -n "${NAMESPACE}" -f components/elk/k8s
 common::log "Installing Fluentbit..."
 helm upgrade --install -n "${NAMESPACE}" fluent-bit fluent/fluent-bit -f components/fluentbit/helm/fluentbit-values.yaml
 
-common::log "Creating Kafka cluster..."
+common::log "Installing Kafka cluster..."
 helm upgrade --install -n "${NAMESPACE}" strimzi-cluster-operator oci://quay.io/strimzi-helm/strimzi-kafka-operator
 kubectl apply -n "${NAMESPACE}" -f components/kafka/k8s
+
+common::log "Installing MariaDB cluster..."
+helm upgrade --install -n "${NAMESPACE}" mariadb oci://registry-1.docker.io/bitnamicharts/mariadb -f components/mariadb/helm/mariadb-values.yaml
 
 common::log "Installing Prometheus..."
 helm upgrade --install -n "${NAMESPACE}" prometheus prometheus-community/prometheus -f components/prometheus/helm/prometheus-values.yaml
@@ -208,6 +175,9 @@ helm upgrade --install -n "${NAMESPACE}" kafka-ui kafka-ui/kafka-ui -f component
 
 common::log "Installing Consul..."
 helm upgrade --install -n "${NAMESPACE}" consul hashicorp/consul -f components/consul/helm/consul-values.yaml
+
+common::log "Initializing Nexus..."
+bash "$PROJECT_DIRECTORY/components/nexus/init/init.sh"
 
 common::lognewline "Done!"
 

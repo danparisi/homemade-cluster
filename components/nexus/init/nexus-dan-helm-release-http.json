@@ -1,0 +1,23 @@
+{
+  "name": "nexus-dan-helm-release-http",
+  "online": true,
+  "storage": {
+    "blobStoreName": "default",
+    "strictContentTypeValidation": true,
+    "writePolicy": "ALLOW_ONCE",
+    "latestPolicy": true
+  },
+  "cleanup": null,
+  "docker": {
+    "v1Enabled": false,
+    "forceBasicAuth": true,
+    "httpPort": 30600,
+    "httpsPort": null,
+    "subdomain": null
+  },
+  "component": {
+    "proprietaryComponents": false
+  },
+  "format": "docker",
+  "type": "hosted"
+}
