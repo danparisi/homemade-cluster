@@ -21,7 +21,7 @@ ingress:
 
 persistence:
   enabled: true
-  storageSize: 5Gi
+  storageSize: 15Gi
   existingClaim: nexus-pvc
 
 
@@ -43,7 +43,7 @@ nexus:
       cpu: 0.5
       memory: 512Mi
     limits:
-      cpu: 1
+      cpu: 4
       memory: 2Gi
   livenessProbe:
     initialDelaySeconds: 180
