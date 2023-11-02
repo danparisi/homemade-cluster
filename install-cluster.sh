@@ -109,8 +109,15 @@ helm repo add kafka-ui https://provectus.github.io/kafka-ui-charts
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 
+shopt -s expand_aliases
+alias my_minikube="minikube --profile='dan-cluster'"
+
 common::log "Creating Minikube cluster..."
-minikube start \
+my_minikube start \
+  --nodes=3 \
+  --cpus='4' \
+  --memory='8g' \
+  --namespace="${NAMESPACE}" \
   --container-runtime=containerd \
   --registry-mirror http://minikube.nexus-docker-proxy-http:30400 \
   --insecure-registry minikube.nexus-docker-proxy-http:30400 \
@@ -120,10 +127,20 @@ minikube start \
   --insecure-registry minikube.nexus-dan-docker-snapshot-http:30501
 
 common::log "Enabling minikube ingress addon..."
-minikube addons enable ingress
+my_minikube addons enable ingress
 
 common::log "Enabling minikube metrics-server addon..."
-minikube addons enable metrics-server
+my_minikube addons enable metrics-server
+
+#Required for multi nodes cluster
+# common::log "Enabling minikube storage-provisioner-rancher addon..."
+# my_minikube addons enable storage-provisioner-rancher
+
+my_minikube addons disable storage-provisioner
+my_minikube addons disable default-storageclass
+my_minikube addons enable volumesnapshots
+my_minikube addons enable csi-hostpath-driver
+kubectl patch storageclass csi-hostpath-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
 common::log "Creating namespace ${NAMESPACE} if not exists..."
 kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
@@ -138,14 +155,14 @@ kubectl apply -n "${NAMESPACE}" -f k8s/dan-roles.yaml
 common::log "Installing Nexus..."
 kubectl apply -n "${NAMESPACE}" -f components/nexus/k8s
 helm upgrade --install -n "${NAMESPACE}" nexus-rm sonatype/nexus-repository-manager -f components/nexus/helm/nexus-values.yaml
-minikube ssh 'sudo mkdir -p /data/nexus-pv'
-minikube ssh 'sudo chown -R 200:200 /data/nexus-pv/'
+my_minikube ssh 'sudo mkdir -p /data/nexus-pv'
+my_minikube ssh 'sudo chown -R 200:200 /data/nexus-pv/'
 
 common::log "Installing Jenkins..."
 kubectl apply -n "${NAMESPACE}" -f components/jenkins/k8s
 helm upgrade --install -n "${NAMESPACE}" jenkins jenkins/jenkins -f components/jenkins/helm/jenkins-values.yaml
-minikube ssh 'sudo mkdir -p /data/jenkins-pv'
-minikube ssh 'sudo chown -R 1000:1000 /data/jenkins-pv/'
+my_minikube ssh 'sudo mkdir -p /data/jenkins-pv'
+my_minikube ssh 'sudo chown -R 1000:1000 /data/jenkins-pv/'
 
 common::log "Installing ELK..."
 helm upgrade --install -n "${NAMESPACE}" elastic-operator elastic/eck-operator
