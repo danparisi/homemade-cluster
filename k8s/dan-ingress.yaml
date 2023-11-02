@@ -84,14 +84,14 @@ spec:
                 name: nexus-service-web-ui
                 port:
                   number: 30000
-    ######### Applications #########
-    - host: minikube.dan-shop
+
+    - host: minikube.gateway
       http:
         paths:
           - pathType: Prefix
             path: /
             backend:
               service:
-                name: dan-shop-core
+                name: dan-gateway-service
                 port:
-                  number: 8080
+                  number: 80
