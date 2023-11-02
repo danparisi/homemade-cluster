@@ -6,7 +6,11 @@
     "strictContentTypeValidation": true,
     "writePolicy": "ALLOW"
   },
-  "cleanup": null,
+  "cleanup": {
+    "policyNames": [
+      "weekly-cleanup"
+    ]
+  },
   "docker": {
     "v1Enabled": false,
     "forceBasicAuth": false,
