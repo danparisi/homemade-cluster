@@ -4,7 +4,7 @@ metadata:
   name: jenkins-m2-pvc
   namespace: dan-ci-cd
 spec:
-  storageClassName: manual
+  # storageClassName: manual
   selector:
     matchLabels:
       app: jenkins
