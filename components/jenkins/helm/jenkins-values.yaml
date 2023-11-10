@@ -42,6 +42,9 @@ controller:
     - workflow-aggregator:latest
     - configuration-as-code:latest
 
+  javaOpts: >-
+    -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true
+
 persistence:
   enabled: true
   existingClaim: jenkins-pvc

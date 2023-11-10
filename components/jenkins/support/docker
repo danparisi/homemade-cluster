@@ -1,2 +1,0 @@
-# /etc/default/docker
-DOCKER_OPTS="--config-file=/etc/docker/daemon.json --insecure-registry=a.example.com --insecure-registry=b.example.com"
