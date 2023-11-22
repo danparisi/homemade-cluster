@@ -1,0 +1,43 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: products
+          uri: lb://dan-shop-products-service:8080
+          predicates:
+            - Path=/v1/products/**
+        - id: consul
+          uri: lb://consul-ui:80
+          predicates:
+            - Path=/consul-ui/**
+        - id: consul-server
+          uri: lb://consul-server:8500
+          predicates:
+            - Path=/v1/**
+            - Header=Referer, .*/consul-ui/.*
+        - id: kibana
+          uri: lb://kibana-kb-http:5601
+          predicates:
+            - Path=/kibana/**
+        - id: zipkin
+          uri: lb://zipkin:9411
+          predicates:
+            - Path=/zipkin/**
+        - id: jenkins
+          uri: lb://jenkins:8080
+          predicates:
+            - Path=/jenkins/**
+        - id: kafka-ui
+          uri: lb://kafka-ui:80
+          predicates:
+            - Path=/kafka-ui/**
+        - id: grafana
+          uri: lb://grafana:80
+          predicates:
+            - Path=/grafana/**
+        - id: nexus-rm
+          uri: lb://nexus-rm:8081
+          predicates:
+            - Path=/nexus/**
+          filters:
+            - RemoveRequestHeader=X-Forwarded-Proto

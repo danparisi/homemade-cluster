@@ -123,6 +123,9 @@ my_helm3 upgrade --install -n "${NAMESPACE}" kafka-ui kafka-ui/kafka-ui -f "$PRO
 common::log "Installing Consul..."
 my_helm3 upgrade --install -n "${NAMESPACE}" consul hashicorp/consul -f "$PROJECT_DIRECTORY/components/consul/helm/consul-values.yaml"
 
+common::log "Initializing Consul..."
+bash $PROJECT_DIRECTORY/components/consul/bash/init.sh --${CLUSTER_TYPE}
+
 common::log "Initializing Nexus..."
 bash $PROJECT_DIRECTORY/components/nexus/bash/init.sh --${CLUSTER_TYPE}
 
