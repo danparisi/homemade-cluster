@@ -74,18 +74,7 @@ spec:
                 port:
                   number: 30601
 
-    - host: minikube.nexus
-      http:
-        paths:
-          - pathType: Prefix
-            path: /
-            backend:
-              service:
-                name: nexus-service-web-ui
-                port:
-                  number: 30000
-
-    - host: minikube.gateway
+    - host: k8s.local
       http:
         paths:
           - pathType: Prefix

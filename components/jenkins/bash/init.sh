@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # API Reference:
-# http://192.168.49.2:32000/api/
+# api/
 
 set -e
 set -o errexit

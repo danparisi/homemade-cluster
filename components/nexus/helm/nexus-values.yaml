@@ -37,6 +37,8 @@ nexus:
         -Djava.util.prefs.userRoot=/nexus-data/javaprefs
     - name: NEXUS_SECURITY_RANDOMPASSWORD
       value: "true"
+    - name: NEXUS_CONTEXT
+      value: "nexus"
   resources:
     # https://help.sonatype.com/repomanager3/product-information/system-requirements
     requests:
@@ -46,6 +48,8 @@ nexus:
       cpu: 4
       memory: 2Gi
   livenessProbe:
+    path: "/nexus"
     initialDelaySeconds: 180
   readinessProbe:
+    path: "/nexus"
     initialDelaySeconds: 120

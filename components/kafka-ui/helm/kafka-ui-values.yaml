@@ -9,3 +9,6 @@ yamlApplicationConfig:
     health:
       ldap:
         enabled: false
+envs:
+  config:
+    SERVER_SERVLET_CONTEXT_PATH: "/kafka-ui"

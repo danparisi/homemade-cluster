@@ -63,7 +63,7 @@ show_info() {
   common::paragraph "User: admin Password: ${JENKINS_PASSWORD}"
 
   common::bold "Accessing Nexus:"
-  common::underline "minikube service nexus-service-web-ui -n dan-ci-cd --url"
+  common::underline "minikube service nexus-rm -n dan-ci-cd --url"
   common::paragraph "User: admin Default password: ${NEXUS_PASSWORD}"
 
   common::bold "Accessing Kibana:"

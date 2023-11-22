@@ -15,7 +15,7 @@ Upgrade:
 helm upgrade nexus-rm sonatype/nexus-repository-manager -f helm/nexus-values.yaml
 
 Hot to access:
-minikube service nexus-service-web-ui -n dan-ci-cd --url
+minikube service nexus-rm -n dan-ci-cd --url
 
 
 URL:

@@ -1,24 +1,6 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: nexus-service-web-ui
-  labels:
-    app.kubernetes.io/name: nexus
-spec:
-  type: NodePort
-  selector:
-    app.kubernetes.io/instance: nexus-rm
-    app.kubernetes.io/name: nexus
-  ports:
-    - port: 8081
-      targetPort: 8081
-      nodePort: 30000
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
   name: nexus-docker-proxy-http
   labels:
     app.kubernetes.io/name: nexus

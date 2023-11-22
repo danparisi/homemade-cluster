@@ -3,15 +3,31 @@ kind: Kibana
 metadata:
   name: kibana
 spec:
-  version: 8.9.0
+  version: 8.11.1
   count: 1
   elasticsearchRef:
     name: elasticsearch
+  config:
+    server.basePath: "/kibana"
+    server.rewriteBasePath: true
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
   podTemplate:
     spec:
       containers:
         - name: kibana
+          readinessProbe:
+            httpGet:
+              path: /kibana/status
+              port: 5601
+              scheme: HTTP
           env:
+            - name: SERVER_BASEPATH
+              value: "/kibana"
+            - name: SERVER_REWRITEBASEPATH
+              value: "true"
           resources:
             requests:
               memory: 0.5Gi

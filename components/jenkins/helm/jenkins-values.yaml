@@ -2,8 +2,8 @@ fsGroup: 0
 runAsUser: 0
 
 controller:
-  nodePort: 32000
-  serviceType: NodePort
+  jenkinsUriPrefix: "/jenkins"
+  serviceType: ClusterIP
   jenkinsUrl: http://minikube.jenkins/
   podSecurityContextOverride:
     runAsUser: 1000

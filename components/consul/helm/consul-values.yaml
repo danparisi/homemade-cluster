@@ -3,3 +3,11 @@ global:
 
 connectInject:
   enabled: false
+
+server:
+  extraConfig: |
+    {
+      "ui_config": {
+        "content_path": "/consul-ui/"
+      }
+    }
