@@ -73,8 +73,8 @@ common::log "Creating cluster roles..."
 my_kubectl apply -n "${NAMESPACE}" -f "$PROJECT_DIRECTORY/k8s/dan-roles.yaml"
 
 common::log "Creating cluster secrets for nexus docker repositories..."
-my_kubectl create secret docker-registry nexus-release-http-secret --docker-server=minikube.nexus-dan-docker-release-http:30500 --docker-username=jenkins --docker-password=jenkins
-my_kubectl create secret docker-registry nexus-snapshot-http-secret --docker-server=minikube.nexus-dan-docker-snapshot-http:30501 --docker-username=jenkins --docker-password=jenkins
+my_kubectl create secret docker-registry nexus-release-http-secret --docker-server=nexus-dan-docker-release-http.k8s.local:30500 --docker-username=jenkins --docker-password=jenkins
+my_kubectl create secret docker-registry nexus-snapshot-http-secret --docker-server=nexus-dan-docker-snapshot-http.k8s.local:30501 --docker-username=jenkins --docker-password=jenkins
 
 common::log "Installing Nexus..."
 my_kubectl apply -n "${NAMESPACE}" -f "$PROJECT_DIRECTORY/components/nexus/k8s"

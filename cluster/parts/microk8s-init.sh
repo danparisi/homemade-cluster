@@ -25,18 +25,18 @@ common::log "Enabling microk8s metrics-server addon..."
 microk8s enable metrics-server
 
 common::log "Adding insecure registries configuration..."
-sudo mkdir -p /var/snap/microk8s/current/args/certs.d/minikube.nexus-dan-docker-release-http:30500
-sudo cat <<EOF >"/var/snap/microk8s/current/args/certs.d/minikube.nexus-dan-docker-release-http:30500/hosts.toml"
-server = "http://minikube.nexus-dan-docker-release-http:30500"
+sudo mkdir -p /var/snap/microk8s/current/args/certs.d/nexus-dan-docker-release-http.k8s.local:30500
+sudo cat <<EOF >"/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-release-http.k8s.local:30500/hosts.toml"
+server = "http://nexus-dan-docker-release-http.k8s.local:30500"
 
-[host."minikube.nexus-dan-docker-release-http:30500"]
+[host."nexus-dan-docker-release-http.k8s.local:30500"]
 capabilities = ["pull", "resolve"]
 EOF
 
-sudo mkdir -p /var/snap/microk8s/current/args/certs.d/minikube.nexus-dan-docker-snapshot-http:30501
-sudo cat <<EOF >"/var/snap/microk8s/current/args/certs.d/minikube.nexus-dan-docker-snapshot-http:30501/hosts.toml"
-server = "http://minikube.nexus-dan-docker-snapshot-http:30501"
+sudo mkdir -p /var/snap/microk8s/current/args/certs.d/nexus-dan-docker-snapshot-http.k8s.local:30501
+sudo cat <<EOF >"/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-snapshot-http.k8s.local:30501/hosts.toml"
+server = "http://nexus-dan-docker-snapshot-http.k8s.local:30501"
 
-[host."minikube.nexus-dan-docker-snapshot-http:30501"]
+[host."nexus-dan-docker-snapshot-http.k8s.local:30501"]
 capabilities = ["pull", "resolve"]
 EOF

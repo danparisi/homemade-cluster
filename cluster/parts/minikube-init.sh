@@ -16,12 +16,12 @@ my_minikube start \
   --memory='8g' \
   --namespace="${NAMESPACE}" \
   --container-runtime=containerd \
-  --registry-mirror http://minikube.nexus-docker-proxy-http:30400 \
-  --insecure-registry minikube.nexus-docker-proxy-http:30400 \
-  --insecure-registry minikube.nexus-dan-helm-release-http:30600 \
-  --insecure-registry minikube.nexus-dan-helm-snapshot-http:30601 \
-  --insecure-registry minikube.nexus-dan-docker-release-http:30500 \
-  --insecure-registry minikube.nexus-dan-docker-snapshot-http:30501
+  --registry-mirror http://nexus-docker-proxy-http.k8s.local:30400 \
+  --insecure-registry nexus-docker-proxy-http.k8s.local:30400 \
+  --insecure-registry nexus-dan-helm-release-http.k8s.local:30600 \
+  --insecure-registry nexus-dan-helm-snapshot-http.k8s.local:30601 \
+  --insecure-registry nexus-dan-docker-release-http.k8s.local:30500 \
+  --insecure-registry nexus-dan-docker-snapshot-http.k8s.local:30501
 
 common::log "Enabling minikube ingress addon..."
 my_minikube addons enable ingress

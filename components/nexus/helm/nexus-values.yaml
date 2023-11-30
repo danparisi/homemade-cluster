@@ -9,15 +9,15 @@ ingress:
   ingressClassName: nginx
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
-  hostPath: /
-  hostRepo: minikube.nexus
+  hostPath: /nexus
+  hostRepo: k8s.local
     #  tls:
-    #    - hosts:
-  #        - minikube.nexus
+  #    - hosts:
+  #        - k8s.local
   # tls:
   #   - secretName: nexus-local-tls
 #  enabled: true
-#  paths: minikube.nexus
+#  paths: k8s.local
 
 persistence:
   enabled: true

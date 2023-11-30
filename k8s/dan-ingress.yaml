@@ -11,18 +11,7 @@ spec:
   #      port:
   #        number: 80
   rules:
-    ######### CI / CD Tools #########
-    - host: minikube.jenkins
-      http:
-        paths:
-          - pathType: Prefix
-            path: /
-            backend:
-              service:
-                name: jenkins
-                port:
-                  number: 8080
-    - host: minikube.nexus-docker-proxy-http
+    - host: nexus-docker-proxy-http.k8s.local
       http:
         paths:
           - pathType: Prefix
@@ -32,7 +21,7 @@ spec:
                 name: nexus-docker-proxy-http
                 port:
                   number: 30400
-    - host: minikube.nexus-dan-docker-release-http
+    - host: nexus-dan-docker-release-http.k8s.local
       http:
         paths:
           - pathType: Prefix
@@ -42,7 +31,7 @@ spec:
                 name: nexus-dan-docker-release-http
                 port:
                   number: 30500
-    - host: minikube.nexus-dan-docker-snapshot-http
+    - host: nexus-dan-docker-snapshot-http.k8s.local
       http:
         paths:
           - pathType: Prefix
@@ -53,7 +42,7 @@ spec:
                 port:
                   number: 30501
 
-    - host: minikube.nexus-dan-helm-release-http
+    - host: nexus-dan-helm-release-http.k8s.local
       http:
         paths:
           - pathType: Prefix
@@ -63,7 +52,7 @@ spec:
                 name: nexus-dan-helm-release-http
                 port:
                   number: 30600
-    - host: minikube.nexus-dan-helm-snapshot-http
+    - host: nexus-dan-helm-snapshot-http.k8s.local
       http:
         paths:
           - pathType: Prefix
