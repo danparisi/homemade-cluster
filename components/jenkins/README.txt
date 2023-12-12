@@ -13,7 +13,6 @@ Installation:
     4.
         - helm repo add jenkins https://charts.jenkins.io
         - helm install jenkins -n dan-ci-cd -f helm/jenkins-values.yaml jenkins/jenkins
-        # - echo "$(minikube ip) minikube.jenkins" | sudo tee -a /etc/hosts
 
     5.
         - Add credentials

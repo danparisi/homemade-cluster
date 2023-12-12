@@ -1,6 +1,7 @@
 Doc:
-https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus
+    https://github.com/grafana/helm-charts/tree/main/charts/grafana
 
 Repo:
-helm repo add openzipkin https://openzipkin.github.io/zipkin
+helm repo add grafana https://grafana.github.io/helm-charts
+
 

@@ -1,6 +1,5 @@
 Doc:
-https://github.com/grafana/helm-charts/tree/main/charts/grafana
+https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus
 
 Repo:
-helm repo add grafana https://grafana.github.io/helm-charts
-
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

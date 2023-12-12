@@ -31,10 +31,20 @@ spring:
           uri: lb://kafka-ui:80
           predicates:
             - Path=/kafka-ui/**
+        - id: grafana-ws
+          uri: lb://grafana:80
+          predicates:
+            - Path=/grafana/api/live/**
+          filters:
+            - PreserveHostHeader
+            - AddRequestHeader=Upgrade, upgrade
+            - AddRequestHeader=Connection, upgrade
         - id: grafana
           uri: lb://grafana:80
           predicates:
             - Path=/grafana/**
+          filters:
+            - PreserveHostHeader
         - id: nexus-rm
           uri: lb://nexus-rm:8081
           predicates:
