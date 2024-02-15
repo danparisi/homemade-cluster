@@ -99,7 +99,6 @@ then
   fi
 
   alias my_kubectl="kubectl"
-  CLUSTER_IP=$(my_minikube ip)
 
 elif [ "$CLUSTER_TYPE" == "microk8s" ]
 then
@@ -107,15 +106,13 @@ then
     common::die "It seems microk8s is not up and running."
   fi
 
-  CLUSTER_IP="127.0.0.1"
   alias my_kubectl="microk8s kubectl"
 else
   common::die "Cluster type value [${CLUSTER_TYPE}] is unexpected"
 fi
 
-NEXUS_PORT=30000
-NEXUS_URL="http://${CLUSTER_IP}:${NEXUS_PORT}"
-NEXUS_API_BASE_PATH="${NEXUS_URL}/service/rest"
+NEXUS_URL="http://k8s.local/nexus/"
+NEXUS_API_BASE_PATH="${NEXUS_URL}service/rest"
 
 common::log "Waiting for Nexus cluster to be ready..."
 while [ "$(curl -s -o /dev/null -w "%{http_code}" ${NEXUS_URL})" != 200 ];

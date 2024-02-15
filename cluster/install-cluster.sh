@@ -72,9 +72,20 @@ my_kubectl apply -n "${NAMESPACE}" -f "$PROJECT_DIRECTORY/k8s/dan-ingress.yaml"
 common::log "Creating cluster roles..."
 my_kubectl apply -n "${NAMESPACE}" -f "$PROJECT_DIRECTORY/k8s/dan-roles.yaml"
 
-common::log "Creating cluster secrets for nexus docker repositories..."
-my_kubectl create secret docker-registry nexus-release-http-secret --docker-server=nexus-dan-docker-release-http.k8s.local:30500 --docker-username=jenkins --docker-password=jenkins
-my_kubectl create secret docker-registry nexus-snapshot-http-secret --docker-server=nexus-dan-docker-snapshot-http.k8s.local:30501 --docker-username=jenkins --docker-password=jenkins
+common::log "Creating cluster secrets for nexus docker repositories if they don't already exist..."
+my_kubectl get secrets nexus-release-http-secret >/dev/null
+if [ $? -eq 0 ]; then
+  common::log "Skipping adding secret [nexus-release-http-secret] as already exist"
+else
+  my_kubectl create secret docker-registry nexus-release-http-secret --docker-server=nexus-dan-docker-release-http.k8s.local:30500 --docker-username=jenkins --docker-password=jenkins
+fi
+
+my_kubectl get secrets nexus-snapshot-http-secret >/dev/null
+if [ $? -eq 0 ]; then
+  common::log "Skipping adding secret [nexus-snapshot-http-secret] as already exist"
+else
+  my_kubectl create secret docker-registry nexus-snapshot-http-secret --docker-server=nexus-dan-docker-snapshot-http.k8s.local:30501 --docker-username=jenkins --docker-password=jenkins
+fi
 
 common::log "Installing Nexus..."
 my_kubectl apply -n "${NAMESPACE}" -f "$PROJECT_DIRECTORY/components/nexus/k8s"
