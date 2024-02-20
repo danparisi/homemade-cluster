@@ -1,0 +1,7 @@
+{
+  "override": "true",
+  "data_view": {
+    "title": "kube-*",
+    "name": "Kubernetes logs"
+  }
+}

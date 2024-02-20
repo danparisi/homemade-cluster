@@ -1,0 +1,14 @@
+{
+  "index_patterns": [
+    "service-*"
+  ],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "index.lifecycle.name": "service"
+    }
+  },
+  "_meta": {
+    "description": "Index template for service-* pattern"
+  }
+}

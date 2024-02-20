@@ -1,0 +1,23 @@
+{
+  "policy": {
+    "_meta": {
+      "description": "Service index cleanup policy"
+    },
+    "phases": {
+      "warm": {
+        "min_age": "5d",
+        "actions": {
+          "forcemerge": {
+            "max_num_segments": 1
+          }
+        }
+      },
+      "delete": {
+        "min_age": "10d",
+        "actions": {
+          "delete": {}
+        }
+      }
+    }
+  }
+}
