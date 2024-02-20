@@ -115,6 +115,7 @@ my_helm3 upgrade --install -n "${NAMESPACE}" fluent-bit fluent/fluent-bit -f "$P
 common::log "Installing Kafka cluster..."
 my_helm3 upgrade --install -n "${NAMESPACE}" strimzi-cluster-operator oci://quay.io/strimzi-helm/strimzi-kafka-operator
 my_kubectl apply -n "${NAMESPACE}" -f "$PROJECT_DIRECTORY/components/kafka/k8s"
+my_kubectl apply -n "${NAMESPACE}" -f "$PROJECT_DIRECTORY/components/kafka/k8s/topic"
 
 common::log "Installing MariaDB cluster..."
 my_helm3 upgrade --install -n "${NAMESPACE}" mariadb oci://registry-1.docker.io/bitnamicharts/mariadb -f "$PROJECT_DIRECTORY/components/mariadb/helm/mariadb-values.yaml"
