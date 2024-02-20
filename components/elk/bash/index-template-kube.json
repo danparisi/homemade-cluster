@@ -1,0 +1,14 @@
+{
+  "index_patterns": [
+    "kube-*"
+  ],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "index.lifecycle.name": "kube"
+    }
+  },
+  "_meta": {
+    "description": "Index template for kube-* pattern"
+  }
+}

@@ -141,4 +141,7 @@ bash $PROJECT_DIRECTORY/components/consul/bash/init.sh --${CLUSTER_TYPE}
 common::log "Initializing Nexus..."
 bash $PROJECT_DIRECTORY/components/nexus/bash/init.sh --${CLUSTER_TYPE}
 
+common::log "Initializing ELK components..."
+bash $PROJECT_DIRECTORY/components/elk/bash/init.sh --${CLUSTER_TYPE}
+
 common::lognewline "Done!"
