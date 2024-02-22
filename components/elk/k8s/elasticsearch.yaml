@@ -3,7 +3,7 @@ kind: Elasticsearch
 metadata:
   name: elasticsearch
 spec:
-  version: 8.11.1
+  version: 8.12.1
   http:
     tls:
       selfSignedCertificate:
@@ -11,6 +11,16 @@ spec:
   nodeSets:
     - name: default
       count: 1
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data # Do not change this name unless you set up a volume mount for the data path.
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 5Gi
+            #storageClassName: standard
       config:
         node.store.allow_mmap: false
         # Allow push from fluentbit without authentication
@@ -28,8 +38,8 @@ spec:
                   memory: 500Mi
                   cpu: 50m
                 limits:
-                  memory: 1Gi
-                  cpu: 500m
+                  memory: 2Gi
+                  cpu: 1
               readinessProbe:
                 exec:
                   command:

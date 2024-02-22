@@ -46,7 +46,7 @@ config:
     [INPUT]
         Name    tail
         Tag     kube.*
-        Path    /var/log/containers/kube*.log
+        Path    /var/log/containers/*.log
         Parser  docker
     [INPUT]
         Name systemd
@@ -84,20 +84,26 @@ config:
         Preserve_Key  Off
         Reserve_Data  Off
 
-  outputs: |
-    [OUTPUT]
-        Name es
-        Match kube.*
-        Host elasticsearch-es-internal-http
-        Logstash_Format On
-        Logstash_Prefix kube
-        Retry_Limit False
-        Trace_Error On
-        Replace_Dots On
-        Suppress_Type_Name On
-        Generate_ID On
-        Write_Operation upsert
+  # Commented out as it was consuming too much disk space on Elasticsearch
+  #    [OUTPUT]
+  #        Name es
+  #        Match kube.*
+  #        Host elasticsearch-es-internal-http
+  #        Logstash_Format On
+  #        Logstash_Prefix kube
+  #        Retry_Limit False
+  #        Trace_Error On
+  #        Replace_Dots On
+  #        Suppress_Type_Name On
+  #        Generate_ID On
+  #        Write_Operation upsert
 
+
+  #    [OUTPUT]
+  #             Name stdout
+  #             Match *
+
+  outputs: |
     [OUTPUT]
         Name es
         Match service.*
@@ -112,4 +118,4 @@ config:
 
     [OUTPUT]
         Name stdout
-        Match *
+        Match service.*
