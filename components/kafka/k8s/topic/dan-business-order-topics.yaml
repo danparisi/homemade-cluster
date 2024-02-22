@@ -8,8 +8,10 @@ spec:
   partitions: 3
   replicas: 3
   config:
-    retention.ms: 7200000
-    segment.bytes: 1073741824
+    retention.ms: 7200000 # 2 hours
+    retention.bytes: 10000000000 # 10 Gb
+    segment.ms: 7200000 # 2 hours
+    segment.bytes: 1000000000 # 1 Gb
 
 ---
 
@@ -23,8 +25,10 @@ spec:
   partitions: 3
   replicas: 3
   config:
-    retention.ms: 7200000
-    segment.bytes: 1073741824
+    retention.ms: 7200000 # 2 hours
+    retention.bytes: 10000000000 # 10 Gb
+    segment.ms: 7200000 # 2 hours
+    segment.bytes: 1000000000 # 1 Gb
 
 ---
 
@@ -38,8 +42,10 @@ spec:
   partitions: 3
   replicas: 3
   config:
-    retention.ms: 7200000
-    segment.bytes: 1073741824
+    retention.ms: 7200000 # 2 hours
+    retention.bytes: 10000000000 # 10 Gb
+    segment.ms: 7200000 # 2 hours
+    segment.bytes: 1000000000 # 1 Gb
 
 ---
 
@@ -53,5 +59,7 @@ spec:
   partitions: 3
   replicas: 3
   config:
-    retention.ms: 7200000
-    segment.bytes: 1073741824
+    retention.ms: 7200000 # 2 hours
+    retention.bytes: 10000000000 # 10 Gb
+    segment.ms: 7200000 # 2 hours
+    segment.bytes: 1000000000 # 1 Gb
