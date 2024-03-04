@@ -85,13 +85,13 @@ Yuo can see 3 layers:
 
 The k8s cluster is reachable through the _Ingress_ component on fixed ports as you can see below. _Ingress_ is linked to
 the _namespace services_.
-From the browser, (on http default port 80) you can reach the _Gateway_ and - trough it - all the platform tools UIs,
+From the browser, (on http default port 80) you can reach the _Gateway_ and - through it - all the platform tools UIs,
 for example:
 _http://k8s.local/nexus, http://k8s.local/zipkin/, http://k8s.local/grafana, etc._ Additionally, you can reach the
 business services as defined in the gateway routes.
 Also note that such routes can be updated on the fly from _Consul UI_.
 
-![Overview](docs/images/k8s-overview.png)
+![Overview](docs/media/k8s-overview.png)
 
 
 ---
@@ -100,11 +100,10 @@ Also note that such routes can be updated on the fly from _Consul UI_.
 
 * [CI / CD](#ci--cd-pipeline)
 * [Observability](#observability)
-    * [Tracing](#tracing-and-metrics)
-    * [Logging](#logging)
-    * [Metrics](#tracing-and-metrics)
-* Dashboards
-* Log monitoring
+    * [Traces and Metrics](#tracing-and-metrics)
+    * [Metrics dashboards](#metrics-dashboards)
+    * [Logs monitoring](#logs-monitoring)
+    * [Tracing monitoring](#tracing-monitoring)
 
 ### CI / CD Pipeline
 
@@ -118,7 +117,7 @@ When I started implementing it, my goals were:
 * Avoid pipeline code repetition
 * Avoid k8s resource definition repetition
 
-![Microservice pipeline happy path](docs/images/pipeline-screenshot.png)
+![Microservice pipeline happy path](docs/media/pipeline-screenshot.png)
 
 #### Tech stack
 
@@ -153,7 +152,7 @@ From a chronological point of view, the pipeline executes such operations:
 8) [Package and push Helm chart against Nexus repository](#helm-package--push)
 9) [Deploy on k8s cluster (Helm upgrade)](#deploy-on-k8s-cluster)
 
-![Microservice pipeline happy path](docs/images/pipeline-flowchart.png)
+![Microservice pipeline happy path](docs/media/pipeline-flowchart.png)
 
 ##### Execution
 
@@ -243,6 +242,8 @@ initContainers:
 service:
   type: ClusterIP
   port: 8080
+  labels:
+    prometheus.io/scrape: "true"
   annotations:
     prometheus.io/port: "8080"
     prometheus.io/scrape: "true"
@@ -335,9 +336,61 @@ operations. We'll see some example later.
 MVC, WebFlux, Jdbc, Feign client, etc. are automatically instrumented by spring boot dependencies, you have all the
 monitoring metrics for free.
 
-#### Logging
+#### Metrics dashboards
 
-//TODO
+Metrics don't really provide such a value until we have a good way to aggregate visualize them in a user-friendly UI.
+Here is where _Grafana_ comes in: it can be configured to query some datasource (_Prometheus_ in our case) and show data
+in intuitive dashboards.
+
+In my cluster installation you will find the following ones:
+
+1) A _Kafka cluster_ monitoring dashboard
+2) A _Spring Boot services_ monitoring dashboard
+3) Plenty _Kubernetes cluster_ monitoring dashboards
+
+All the dashboards can be found at the following URL: http://k8s.local/grafana/dashboards, here are some examples:
+
+![Grafana dashboard - Kafka cluster](docs/media/metrics/dashboard-kafka-cluster.png)
+
+![Grafana dashboard - Kubernetes namespaces](docs/media/metrics/dashboard-kubernetes-namespaces.png)
+
+![Grafana dashboard - Spring Boot services](docs/media/metrics/dashboard-spring-boot-services.png)
+
+#### Logs monitoring
+
+How can you say your system is observable without a smart, user-friendly and easy to navigate way to check components'
+logs?
+And - of course - you want to easily group them by some order ID (tracing) in order to check the flow throughout all the
+components that are involved.
+
+In order to achieve everything I decided to use the _ELK stack_ (as already discussed earlier).
+Shortly: logs are streamed from the java services to _kafka_, collected from _fluentbit_, normalized,
+and pushed against **Elasticsearch** where they are indexed and stored.
+**Kibana** is the tool that lets us read, group, investigate, etc. such log entries them in a nice UI.
+
+My focus was to mainly show the business services logs, but you can have multiple views for other kind of logs:
+kubernetes nodes, kafka cluster, MariaDB, etc. At the time I'm writing 2 views are available:
+_Java microservices_ logs and _Kubernetes cluster_ logs. Here are some example:
+
+![Kibana - Java services logs](docs/media/logging/kibana-java-services.png)
+
+#### Tracing monitoring
+
+In order to store anche how in a nice UI all the traces I decided to use **Zipkin Server**.
+At the time I'm writing you can nicely see traces propagating through REST API, Kafka messages and JDBC calls.
+It means you can follow a whole "order" processing by its corresponding metrics even if few steps are asynchronous.
+This is such a great achievement as observability was one of the main features I wanted to have here:
+this way you can spot bottlenecks, finds out any slowness points, check the service interactions, etc.
+
+:info: I disabled by default JDBC tracing as it adds too much entropy to the zipkin chart according to me.
+It can be enabled for all o specific service by configuration, even from **Consul UI**.
+
+Here you can see some example about **Zipkin UI**:
+
+![Tracing - Whole flow for a single order](docs/media/tracing/tracing-whole-flow.png)
+
+![Tracing - Dependencies chart](docs/media/tracing/tracing-dependency-chart.gif)
+
 
 ---
 
@@ -458,16 +511,53 @@ order to get metrics such as timers, gauges, counters, distribution summaries, e
 with a dimensional data model that - when paired with a dimensional monitoring system - allows for efficient access to a
 particular named metric with the ability to drill down across its dimensions.
 
+Also, the Kubernetes cluster itself and basically all components can be instrumented to provide such metrics.
+At the time I'm writing I focused on scraping the following entities:
+
+1) Kafka cluster.
+2) All java microservices
+3) Kubernetes cluster (granularity: Nodes, Pods, Namespaces, etc.)
+
+Of course there are many interesting components that are supposed to be instrumented as well, such as MariaDB,
+Elasticsearch, Nexus repository, etc.
+
 ##### How does it work?
 
-_Prometheus_ is in charge to scrape all the Java services and store the metrics. Services to be scraped are found thanks
-to the following Annotations added to the related k8s services:
+_Prometheus_ is in charge to scrape the components listed above and store the metrics.
+The _Prometheus Operator_ finds out what to scrape by monitoring the _PodMonitor_ and _ServiceMonitor_ _CRDs_.
+
+###### PodMonitor
+
+Used to scrape the _kafka cluster_. The configuration is provided by the _strimzi_ operator and can be
+found [here](https://github.com/danparisi/homemade-cluster/blob/main/components/kafka/k8s/dan-kafka-cluster.yaml).
+In order to let it work, kafka and zookeeper PODs need to expose the metrics, such configuration can be
+found [here](https://github.com/danparisi/homemade-cluster/blob/main/components/kafka/k8s/dan-kafka-cluster-metrics-pod-monitor.yaml).
+
+###### ServiceMonitor
+
+Used to scrape the Java spring boot services. Configuration is part of the _kube-prometheus-stack_ helm chart:
+
+> additionalServiceMonitors: \
+> &emsp;name: kube-prometheus-stack-spring-boot \
+> &emsp;selector: \
+> &emsp;&emsp;matchLabels: \
+> &emsp;&emsp;&emsp;prometheus.io/scrape: "true" \
+> &emsp;&emsp;namespaceSelector: \
+> &emsp;&emsp;&emsp;matchNames: \
+> &emsp;&emsp;&emsp;&emsp;- dan-ci-cd \
+> &emsp;endpoints: \
+> &emsp;&emsp;- port: http \
+> &emsp;&emsp;interval: 5s \
+> &emsp;&emsp;path: /prometheus
+
+As you can see from the _matchLabels_ value, the operator will look for and scrape all the kubernetes services
+containing the _prometheus.io/scrape: "true"_ label:
 > Annotations: \
-> &emsp;prometheus.io/path: /prometheus \
-> &emsp;prometheus.io/port: 8080 \
+> &emsp;... \
 > &emsp;prometheus.io/scrape: true
 
-Such annotations are added thanks to the pipeline _Helm chart_ default values, as you will see later.
+Such label is added thanks to the pipeline _Helm chart_ default values,
+visible  [here](https://github.com/danparisi/dan-build-tools/blob/main/helm-chart/values.yaml).
 
 #### Nexus repository
 
@@ -482,7 +572,7 @@ Nexus Repository provides a central platform for storing and provide several bui
 Repositories listed above are reached against fixed port numbers.
 For example che _Docker snapshot repository_ is available at port 30501: _nexus-dan-docker-snapshot-http:30501_
 
-![Nexus component](docs/images/k8s-nexus.png)
+![Nexus component](docs/media/k8s-nexus.png)
 
 
 > Note :warning:
@@ -495,9 +585,13 @@ For example che _Docker snapshot repository_ is available at port 30501: _nexus-
 
 ## Troubleshooting
 
-**_microk8s kubectl_ throws the following error:**
+### **_microk8s kubectl_ throws the following error:**
 
 > error: error upgrading connection: error dialing backend: tls: failed to verify certificate: x509
+
+**Why?**
+Usually, it happens when the laptop is connected to a new local network with a different IP address domain (for example
+from 198.168.0.X to 198.168.100.X)
 
 **Solution:**
 
@@ -507,9 +601,46 @@ Run the following commands:
 2. sudo microk8s.refresh-certs -e front-proxy-client.crt
 3. sudo microk8s.refresh-certs -e ca.crt
 
+### **Ubuntu process _gvfs-udisks2-vo_ causes High CPU usage**
+
+**Possible solution:**
+> sudo tee /etc/udev/rules.d/90-loopback.rules <<EOF \
+> SUBSYSTEM=="block", DEVPATH=="/devices/virtual/block/loop*", ENV{UDISKS_PRESENTATION_HIDE}="1", ENV{UDISKS_IGNORE}="
+> 1" \
+> EOF
+
+**Reference:**
+
+https://github.com/canonical/microk8s/issues/500#issuecomment-811708699
+
+---
+
+## FAQs
+
+**How can I navigate microk8s volumes?**
+
+Go to _/var/snap/microk8s/common/default-storage_
+
+**How can I navigate the database schemas?**
+
+1. From local machine mysql client:
+
+> k port-forward svc/mariadb 3306
+>
+> mysql -u root -P 3306 -h localhost --protocol=TCP --password=MARIADB_PASSWORD
+
+2. From the utility _mysql-client-pod_ located in this project _/support_ folder:
+
+> k exec -it mysql-client-pod -- sh
+>
+> mysql -h mariadb --protocol TCP --password=MARIADB_PASSWORD
+
 ---
 
 ## TODO
+
+* #### Kafka client for business service logs doesn't reconnect after kafka cluster was offline
+
 
 * #### Build tools versioning
 
@@ -526,14 +657,35 @@ Run the following commands:
   ##### Cons
     * If _Fluent Bit_ is down, logs entries may be lost (as there's no kafka storage in between)
 
+* #### Evaluate if fluentbit helm chart installation can be replaced with fluentbit operator
+    * https://github.com/fluent/fluent-operator
+
 
 * #### Implement checkstyle analysis in the pipeline
+
+
+* #### Tune JDBC tracing configuration (currently disabled) in order to avoid too much entropy in zipkin charts.
+
+
+* #### Fix _Generated Server Url_ in Swagger UI when reaching it out from the ingress
+    * Check this URL: http://k8s.local/pretrade/swagger-ui/index.html
+    * Wrongly generated url example: http://dan-pretrade-service.dan-ci-cd.svc.cluster.local
+    * Solutions to be
+      tested: https://stackoverflow.com/questions/60625494/wrong-generated-server-url-in-springdoc-openapi-ui-swagger-ui-deployed-behin
+
+
+* #### ~~Fix Grafana dashboard imports from helm chart~~
+
+  ~~https://github.com/grafana/helm-charts/issues/1385~~
 
 ---
 
 ## References
 
 * https://opentelemetry.io/
+* https://strimzi.io/documentation/
 * https://www.baeldung.com/distributed-systems-observability
 * https://spring.io/blog/2022/10/12/observability-with-spring-boot-3
 * https://peter.bourgon.org/blog/2017/02/21/metrics-tracing-and-logging.html
+* https://www.cloudkarafka.com/blog/apache-kafka-retention-and-segment-size-mistake.html
+* Actually many, many more I forgot to report here :)
