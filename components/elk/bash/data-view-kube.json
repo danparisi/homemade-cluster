@@ -2,6 +2,7 @@
   "override": "true",
   "data_view": {
     "title": "kube-*",
-    "name": "Kubernetes logs"
+    "name": "Kubernetes logs",
+    "timeFieldName": "@timestamp"
   }
 }

@@ -120,11 +120,14 @@ my_kubectl apply -n "${NAMESPACE}" -f "$PROJECT_DIRECTORY/components/kafka/k8s/t
 common::log "Installing MariaDB cluster..."
 my_helm3 upgrade --install -n "${NAMESPACE}" mariadb oci://registry-1.docker.io/bitnamicharts/mariadb -f "$PROJECT_DIRECTORY/components/mariadb/helm/mariadb-values.yaml"
 
-common::log "Installing Prometheus..."
-my_helm3 upgrade --install -n "${NAMESPACE}" prometheus prometheus-community/prometheus -f "$PROJECT_DIRECTORY/components/prometheus/helm/prometheus-values.yaml"
+#common::log "Installing Prometheus..."
+#my_helm3 upgrade --install -n "${NAMESPACE}" prometheus prometheus-community/prometheus -f "$PROJECT_DIRECTORY/components/prometheus/helm/prometheus-values.yaml"
+#
+#common::log "Installing Grafana..."
+#my_helm3 upgrade --install -n "${NAMESPACE}" grafana grafana/grafana -f "$PROJECT_DIRECTORY/components/grafana/helm/grafana-values.yaml"
 
-common::log "Installing Grafana..."
-my_helm3 upgrade --install -n "${NAMESPACE}" grafana grafana/grafana -f "$PROJECT_DIRECTORY/components/grafana/helm/grafana-values.yaml"
+common::log "Installing Kube Prometheus Stack (Prometheus, Operator, Grafana, AlertManager, Kube state metrics)..."
+my_helm3 upgrade --install -n "${NAMESPACE}" kube-prometheus-stack prometheus-community/kube-prometheus-stack -f "$PROJECT_DIRECTORY/components/kube-prometheus-stack/helm/kube-prometheus-stack-values.yaml"
 
 common::log "Installing Zipkin..."
 my_helm3 upgrade --install -n "${NAMESPACE}" zipkin openzipkin/zipkin -f "$PROJECT_DIRECTORY/components/zipkin/helm/zipkin-values.yaml"

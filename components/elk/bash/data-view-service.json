@@ -2,6 +2,7 @@
   "override": "true",
   "data_view": {
     "title": "service-*",
+    "timeFieldName": "@timestamp",
     "name": "Business service logs"
   }
 }

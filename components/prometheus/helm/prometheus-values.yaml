@@ -6,3 +6,11 @@ prometheus-pushgateway:
   enabled: false
 prometheus-node-exporter:
   enabled: false
+
+server:
+  #  baseURL: "/prometheus-server"
+  prefixURL: "/prometheus-server"
+
+#additionalScrapeConfigs: |
+#  name: additional-scrape-configs
+#  key: prometheus-additional.yaml

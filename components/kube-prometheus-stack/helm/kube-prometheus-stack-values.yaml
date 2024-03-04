@@ -1,0 +1,65 @@
+prometheus:
+  prometheusSpec:
+    retention: 1d
+    #retentionSize: ""
+
+    routePrefix: "/prometheus-server"
+    externalUrl: "http://k8s.local/prometheus-server/"
+    # Following property must be set to false otherwise PodMonitor CRDs are not discovered
+    # https://github.com/prometheus-operator/prometheus-operator/issues/3636
+    podMonitorSelectorNilUsesHelmValues: false
+  ingress:
+    enabled: true
+    hosts:
+      - k8s.local
+    paths:
+      - "/prometheus-server"
+  additionalServiceMonitors:
+    - name: kube-prometheus-stack-spring-boot
+      selector:
+        matchLabels:
+          prometheus.io/scrape: "true"
+      namespaceSelector:
+        matchNames:
+          - dan-ci-cd
+      endpoints:
+        # Use port name (from the service), using the port number (i.e. "8080") won't let it work
+        - port: http
+          interval: 5s
+          path: /prometheus
+
+grafana:
+  # Using sub chart https://github.com/grafana/helm-charts/, as visible here:
+  # https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml#L55
+
+  adminUser: admin
+  adminPassword: admin
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: 'default'
+          type: file
+          disableDeletion: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+  dashboards:
+    default:
+      # https://grafana.com/grafana/dashboards/4701-jvm-micrometer/
+      jvm-micrometer:
+        gnetId: 4701
+        revision: 10
+        datasource: Prometheus
+      strimzi-kafka:
+        token: ''
+        url: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/examples/metrics/grafana-dashboards/strimzi-kafka.json
+  env:
+    GF_SERVER_SERVE_FROM_SUB_PATH: 'true'
+    GF_SERVER_ROOT_URL: http://k8s.local/grafana
+
+nodeExporter:
+  enabled: false
