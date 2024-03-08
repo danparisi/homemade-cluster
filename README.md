@@ -24,8 +24,7 @@ supposed to achieve:
 ### A Platform for a team / department
 
 This project may represent the whole IT stack of a "small" company or a department of a big organization.
-The platform is meant to be **observable, fault-tolerant, resilient and cloud-provider-agnostic** (a kubernetes cluster
-would be the only requirement).
+The platform is meant to be **observable, fault-tolerant, resilient and cloud-provider-agnostic**.
 
 After running it, you would mainly need to write the business logic only, everything else is supposed to be there.
 
@@ -61,8 +60,7 @@ In order to template and customize such kubernetes resources I deiced to use **H
 to
 avoid code repetition between the services, as you don't want to write the helm charts multiple times.
 That's why one of the main goal was to have a _pipeline_ able to check out a _Helm charts_ definition to be used for all
-the
-business service and maybe only apply some customization if required for the service that's building.
+the business service and maybe only apply some customization if required for the service that's building.
 
 ### A commit-to-deployment pipeline for the business services
 
@@ -212,7 +210,7 @@ Go to _/var/snap/microk8s/common/default-storage_
     * If _Fluent Bit_ is down, logs entries may be lost (as there's no kafka storage in between)
 
 * #### Evaluate if fluentbit helm chart installation can be replaced with fluentbit operator
-    * https://github.com/fluent/fluent-operator
+  * https://github.com/fluent/fluent-operator
 
 
 * #### Implement checkstyle analysis in the pipeline
@@ -222,11 +220,14 @@ Go to _/var/snap/microk8s/common/default-storage_
 
 
 * #### Fix _Generated Server Url_ in Swagger UI when reaching it out from the ingress
-    * Check this URL: http://k8s.local/pretrade/swagger-ui/index.html
-    * Wrongly generated url example: http://dan-pretrade-service.dan-ci-cd.svc.cluster.local
-    * Solutions to be
-      tested: https://stackoverflow.com/questions/60625494/wrong-generated-server-url-in-springdoc-openapi-ui-swagger-ui-deployed-behin
+  * Check this URL: http://k8s.local/pretrade/swagger-ui/index.html
+  * Wrongly generated url example: http://dan-pretrade-service.dan-ci-cd.svc.cluster.local
+  * Solutions to be
+    tested: https://stackoverflow.com/questions/60625494/wrong-generated-server-url-in-springdoc-openapi-ui-swagger-ui-deployed-behin
 
+
+* #### Fix pipeline Docker image push in order to choose snapshot or release docker repository according to the POM version
+  Basically as is for Helm maven plugin
 
 * #### ~~Fix Grafana dashboard imports from helm chart~~
 

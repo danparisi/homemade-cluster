@@ -15,6 +15,12 @@ The result was the lack of a standard for how to instrument code and send teleme
 > Crucially, OpenTelemetry is vendor - and tool - agnostic, meaning that it can be used with a broad variety of
 > Observability backends.
 
+:information_source: This DOC is mostly about showcasing the implementation result.
+Documentation about _observability tools installation_ can be found
+in [platform component section](README_PLATFORM_COMPONENTS.md),
+while the one about _configuration against the java microservice framework_ can be found
+in [java technical platform section](README_JAVA_TECH_PLATFORM.md).
+
 ## Tracing and Metrics
 
 As the idea is to build java based microservices, it's worth to explain how such applications are instrumented in order
