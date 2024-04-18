@@ -24,7 +24,6 @@ persistence:
   storageSize: 15Gi
   existingClaim: nexus-pvc
 
-
 nexus:
   env:
     # https://help.sonatype.com/repomanager3/product-information/system-requirements
@@ -46,7 +45,7 @@ nexus:
       memory: 512Mi
     limits:
       cpu: 4
-      memory: 2Gi
+      memory: 1.5Gi
   livenessProbe:
     path: "/nexus"
     initialDelaySeconds: 180

@@ -38,7 +38,7 @@ spec:
                   memory: 500Mi
                   cpu: 50m
                 limits:
-                  memory: 2Gi
+                  memory: 1.5Gi
                   cpu: 1
               readinessProbe:
                 exec:
@@ -54,4 +54,3 @@ spec:
               env:
                 - name: READINESS_PROBE_TIMEOUT
                   value: "10"
-

@@ -42,17 +42,18 @@ luaScripts:
 config:
   ## https://docs.fluentbit.io/manual/pipeline/outputs
 
+  # Commented out for performance reason
+  #    [INPUT]
+  #    Name    tail
+  #    Tag     kube.*
+  #    Path    /var/log/containers/*.log
+  #    Parser  docker
+  #    [INPUT]
+  #    Name systemd
+  #    Tag kube.*
+  #    Systemd_Filter _SYSTEMD_UNIT=kubelet.service
+  #    Read_From_Tail On
   inputs: |
-    [INPUT]
-        Name    tail
-        Tag     kube.*
-        Path    /var/log/containers/*.log
-        Parser  docker
-    [INPUT]
-        Name systemd
-        Tag kube.*
-        Systemd_Filter _SYSTEMD_UNIT=kubelet.service
-        Read_From_Tail On
     [INPUT]
         Name        kafka
         Tag         service.*

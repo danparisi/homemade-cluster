@@ -8,7 +8,7 @@ spec:
   partitions: 10
   replicas: 3
   config:
-    retention.ms: 7200000 # 2 hours
+    retention.ms: 900000 # 15 min
     retention.bytes: 1000000000 # 1 Gb
-    segment.ms: 7200000 # 2 hours
+    segment.ms: 900000 # 15 min
     segment.bytes: 1000000000 # 1 Gb

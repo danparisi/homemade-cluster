@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: docker-client-pod
+spec:
+  containers:
+    - name: docker-client
+      image: docker:latest
+      command: [ "sleep" ]
+      args: [ "infinity" ]
+      volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: docker-sock
+          readOnly: false
+        - mountPath: /var/lib/docker
+          name: docker-lib
+          readOnly: false
+  volumes:
+    - hostPath:
+        type: Socket
+        path: /run/docker.sock
+      name: docker-sock
+    - hostPath:
+        type: Directory
+        path: /var/lib/docker
+      name: docker-lib

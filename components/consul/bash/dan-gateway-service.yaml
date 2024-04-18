@@ -1,11 +1,46 @@
+logging:
+  level:
+    io.kubernetes.client: WARN
+
 spring:
   cloud:
     gateway:
+      #      httpclient:
+      #        wiretap: true
+      #      httpserver:
+      #        wiretap: true
       routes:
         - id: products
           uri: lb://dan-shop-products-service:8080
           predicates:
             - Path=/v1/products/**
+        - id: dan-pretrade-service
+          uri: lb://dan-pretrade-service:8080
+          predicates:
+            - Path=/orders/**
+        - id: dan-pretrade-service-swagger
+          uri: lb://dan-pretrade-service:8080
+          predicates:
+            - Path=/pretrade/swagger-ui/**
+          filters:
+            - RewritePath=/pretrade/swagger-ui/(?<segment>.*),/swagger-ui/$\{segment}
+        - id: dan-pretrade-service-swagger-api-docs
+          uri: lb://dan-pretrade-service:8080
+          predicates:
+            - Path=/v3/api-docs/**
+            - Header=Referer, .*/pretrade/swagger-ui/.*
+        - id: dan-validation-service-swagger
+          uri: lb://dan-validation-service:8080
+          predicates:
+            - Path=/validation/swagger-ui/**
+          filters:
+            - RewritePath=/validation/swagger-ui/(?<segment>.*),/swagger-ui/$\{segment}
+        - id: dan-validation-service-swagger-api-docs
+          uri: lb://dan-validation-service:8080
+          predicates:
+            - Path=/v3/api-docs/**
+            - Header=Referer, .*/validation/swagger-ui/.*
+
         - id: consul
           uri: lb://consul-ui:80
           predicates:
@@ -31,20 +66,36 @@ spring:
           uri: lb://kafka-ui:80
           predicates:
             - Path=/kafka-ui/**
+        ### Prometheus is reachable against k8s.local/prometheus-server/ thanks to the ingress provided by the kube-prometheus-stack helm chart
+        #        - id: prometheus-server
+        #          uri: lb://kube-prometheus-stack-prometheus:9090
+        #          predicates:
+        #            - Path=/prometheus-server/**
         - id: grafana-ws
-          uri: lb://grafana:80
+          uri: lb://kube-prometheus-stack-grafana:80
           predicates:
             - Path=/grafana/api/live/**
           filters:
             - PreserveHostHeader
             - AddRequestHeader=Upgrade, upgrade
             - AddRequestHeader=Connection, upgrade
+        #        - id: grafana-api
+        #          uri: lb://grafana:80
+        #          predicates:
+        #            - Path=/grafana/api/**
+        #          filters:
+        #            - RewritePath=/grafana/api/(?<segment>.*),/api/$\{segment}
         - id: grafana
-          uri: lb://grafana:80
+          uri: lb://kube-prometheus-stack-grafana:80
           predicates:
             - Path=/grafana/**
           filters:
             - PreserveHostHeader
+        - id: grafana-api-swagger
+          uri: lb://kube-prometheus-stack-grafana:80
+          predicates:
+            - Path=/api/**
+            - Header=Referer, .*/grafana/.*
         - id: nexus-rm
           uri: lb://nexus-rm:8081
           predicates:
