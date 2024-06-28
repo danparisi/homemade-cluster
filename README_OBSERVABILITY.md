@@ -94,6 +94,6 @@ It can be enabled for all or a specific service by configuration, even from **Co
 
 Here you can see some example about **Zipkin UI**:
 
-![Tracing - Whole flow for a single order](docs/media/tracing/tracing-whole-flow.png)
+![Tracing - Business case example whole flow](docs/media/tracing/tracing-whole-flow.png)
 
 ![Tracing - Dependencies chart](docs/media/tracing/tracing-dependency-chart.gif)

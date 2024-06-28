@@ -108,6 +108,7 @@ By feature, I mean all the "topics / components" I focused more.
 
 Detailed description can be found in the following DOCs:
 
+* [Go Native!](README_NATIVE_IMAGES.md) :new:
 * [Observability](README_OBSERVABILITY.md)
 * [Platform components](README_PLATFORM_COMPONENTS.md)
 * [Java Technical platform library(s)](README_JAVA_TECH_PLATFORM.md)
@@ -229,6 +230,8 @@ Go to _/var/snap/microk8s/common/default-storage_
 * #### Fix pipeline Docker image push in order to choose snapshot or release docker repository according to the POM version
   Basically as is for Helm maven plugin
 
+* #### Jenkins docker DinD - try to keep docker images in order to improve build performance (while building docker image)
+
 * #### ~~Fix Grafana dashboard imports from helm chart~~
 
   ~~https://github.com/grafana/helm-charts/issues/1385~~
@@ -239,8 +242,11 @@ Go to _/var/snap/microk8s/common/default-storage_
 
 * https://opentelemetry.io/
 * https://strimzi.io/documentation/
+* https://www.marcobehler.com/guides/graalvm-aot-jit
 * https://www.baeldung.com/distributed-systems-observability
 * https://spring.io/blog/2022/10/12/observability-with-spring-boot-3
 * https://peter.bourgon.org/blog/2017/02/21/metrics-tracing-and-logging.html
+* https://docs.spring.io/spring-boot/docs/current/reference/html/native-image.html
 * https://www.cloudkarafka.com/blog/apache-kafka-retention-and-segment-size-mistake.html
+* https://www.graalvm.org/22.3/reference-manual/native-image/guides/debug-native-image-process/
 * Actually many, many more I forgot to report here :)
