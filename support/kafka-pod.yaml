@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kafka-pod
+spec:
+  containers:
+    - name: kafka
+      image: bitnami/kafka:latest
+      command: [ "sleep" ]
+      args: [ "infinity" ]

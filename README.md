@@ -188,6 +188,14 @@ Go to _/var/snap/microk8s/common/default-storage_
 >
 > mysql -h mariadb --protocol TCP --password=MARIADB_PASSWORD
 
+**How can I consume kafka cluster messages ?**
+
+From the utility _kafka-pod_ located in this project _/support_ folder:
+
+> k exec -it mysql-pod -- bash
+>
+> kafka-console-consumer.sh --bootstrap-server dan-kafka-cluster-kafka-bootstrap:9092 --topic my-topic-name
+
 ---
 
 ## TODO
