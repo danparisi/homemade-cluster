@@ -104,6 +104,21 @@ classes [here](https://github.com/danparisi/dan-service-tech-starter/blob/main/s
 documentation as you can
 see [here](https://github.com/resilience4j/resilience4j/issues/2184).
 
+Last but not least, I also need to provide reflection hints about all the classes supposed to be serialized by Jackson
+(see the
+docs [here](https://docs.spring.io/spring-boot/reference/packaging/native-image/advanced-topics.html#packaging.native-image.advanced.custom-hints))
+because used as kafka message bodies. I did it programmatically, as you can
+see [here](https://github.com/danparisi/dan-pretrade-service/blob/main/src/main/java/com/danservice/pretrade/Application.java#L15)
+by using the
+_RegisterReflectionForBinding(...)_ annotation. Here is a small example:
+
+```
+@SpringBootApplication
+...
+@RegisterReflectionForBinding(KafkaClientOrderDTO.class)
+public class Application {
+```
+
 ## Resource and time consuming build
 
 Title is quite self explaining, AOT compilation for native image is very expensive for both time and resources.
