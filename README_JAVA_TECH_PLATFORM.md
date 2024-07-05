@@ -76,7 +76,10 @@ created and pushed during the build (more information [here](README_CI_CD.md)):
 
 The library is the heart of the java microservice framework implementation. It has few lines of code and configuration,
 but it took some effort in order to let everything work together. Also writing few related java integration tests and
-testing it live in the cluster was quite time-consuming.
+testing it live in the cluster was quite time-consuming. Overall, I tried to keep the code amount low here, there's
+nothing more other than what is going to be discussed in this chapter. You can have a look at the project view here:
+
+![Microservice pipeline happy path](docs/media/project-view-tech-library.png)
 
 ### Discovery client
 
@@ -185,8 +188,9 @@ the [Externalized Configuration](https://docs.spring.io/spring-boot/docs/current
 because I wanted to keep
 the [default configuration](https://github.com/danparisi/dan-service-tech-starter/blob/main/src/main/resources/application.yml)
 inside the tech starter library and eventually override it inside
-the microservice repo and / or on Consul. That was not possible without tuning it, but I'm quite happy of the result.
-Here is the priority list:
+the microservice repo and / or on Consul. This is not possible by default with Spring Boot, that's why I needed to
+create an **EnvironmentPostProcessor**.
+Here is the priority list according to my implementation:
 
 1. Consul - microservice properties file with spring profile. For
    example: [config/dan-gateway-service-profilename/data](http://k8s.local/consul-ui/dc1/kv/config/dan-gateway-service-profilename/data/edit)
@@ -201,6 +205,19 @@ Here is the priority list:
 
 :information_source: For other properties (such as environment variables, etc.) ordering, have a
 look [here](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config)
+
+:warning: Note that common configuration is stored on the technical library _main/resources/_ folder while custom
+microservice configuration is on _main/resources/config/_ one. Adding any _main/resources/application.yml_ in the
+microservice repo would lead to completely override the tech library one and therefore losing the common configuration.
+
+ dan-service-tech-starter                                                                   | dan-gateway-service                                                              
+--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------- 
+ ![dan-service-tech-starter](docs/media/configuration-properties-location-tech-library.png) | ![dan-gateway-service](docs/media/configuration-properties-location-gateway.png) 
+
+You can see below a concrete example about this topic. Spring cloud gateway routing configuration is stored on Consul,
+you can add / edit / remove any route, and it will be live immediately:
+
+![Consul configuration view - Gateway](docs/media/consul-configuration-gateway.png)
 
 ### Traces and Metrics
 
@@ -319,9 +336,8 @@ kafka messages.
 
 ##### Micrometer configuration
 
-Few code liens were also needed in order to expose the java microservice application name tag for Prometheus, as
+Few code lines were also needed in order to expose the java microservice application name tag for Prometheus, as
 visible [here](https://github.com/danparisi/dan-service-tech-starter/blob/main/src/main/java/com/danservice/techstarter/autoconfigure/MicrometerConfiguration.java).
-
 
 ---
 
@@ -394,3 +410,7 @@ found [here](README_PLATFORM_COMPONENTS.md#nexus-repository).
 
 :information_source: More information about how the _Jenkins pipeline_ is using such configuration / plugins can be
 found [here](README_CI_CD.md).
+
+The parent POM project has no java code, only POM is relevant as you can see below:
+
+![Microservice pipeline happy path](docs/media/project-view-parent-pom.png)

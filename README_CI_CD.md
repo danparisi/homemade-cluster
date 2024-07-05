@@ -12,6 +12,8 @@ When I started implementing it, my goals were:
 
 ![Microservice pipeline happy path](docs/media/pipeline-screenshot.png)
 
+:information_source: Image above is missing the _build native image_ step as it was added in a later stage
+
 ## Tech stack
 
 The pipeline stack includes quite a few tools / components:
@@ -22,7 +24,35 @@ The pipeline stack includes quite a few tools / components:
 * Docker daemon
 * Nexus repository
 
-## How it works
+## Few words on Helm
+
+> The package manager for Kubernetes.
+
+Helm is a tool for managing Kubernetes packages called charts. A **helm chart** is basically a bundle of kubernetes
+resource definition templates, meant to be reused and customized to deliver and maintain Kubernetes objects in the
+cluster.
+
+**Why using Helm?**
+Writing and maintaining Kubernetes YAML manifests for all your Kubernetes objet can be quite complicated, tedious and
+time consuming. Just imagine to have at least 3 YAML manifests for each service you want to deploy, with 99% of
+duplicated code.
+
+**So how am I using Helm to smartly avoid maintain my Kubernetes resource manifests and code duplication?**
+
+1) I coded my **Helm templates** only once, they are meant to generate a Helm chart for each microservice build. You can
+   see them [here](https://github.com/danparisi/dan-build-tools/tree/main/helm-chart/templates).
+2) I add a _helm-values.yaml_ file in each microservice repository to customize Helm template for custom microservice
+   needs. Usually it is empty as no additional configuration is required or contains very few lines.
+3) During each microservice build execution, _Jenkins_ is in charge of:
+    1) Download the Helm templates from _build-tools_ repository;
+    2) Download the _helm-values.yaml_ from the microservice repo you are building;
+    3) Package and push the newly created _Helm chart_ on Nexus repository;
+    4) Run _helm upgrade_ command in order to deliver the new microservice version on Kubernetes using the newly created
+       chart.
+
+![Helm use cases](docs/media/helm-usecases.png)
+
+## Jenkins pipeline - How it works
 
 Pipeline code can be found into [dan-build-tools](https://github.com/danparisi/dan-build-tools) repository.
 Main pieces of the puzzle are:
@@ -201,3 +231,7 @@ The following maven goals are executed by the pipeline:
 ### Deploy on k8s cluster
 
 Nothing special here, the pipeline step is in charge to execute the _helm:upgrade_ maven goal.
+
+![Microservice pipeline happy path](docs/media/pipeline-screenshot-enhanced.png)
+
+:information_source: Image above is missing the _build native image_ step as it was added in a later stage

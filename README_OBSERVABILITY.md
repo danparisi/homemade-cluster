@@ -45,7 +45,29 @@ UI.
 Here is where _Grafana_ comes in: it can be configured to query some datasource (_Prometheus_ in our case) and show data
 in intuitive dashboards.
 
-In my cluster installation you will find the following ones:
+![Prometheus / Grafana - Use case](docs/media/metrics/use-case-prometheus-grafana.png)
+
+MOst of the job, scraping applications to get and store metrics, is done by the **Prometheus Operator**.
+It introduces few CRDs, like:
+
+* **Prometheus**, that declaratively describes the desired state of a _Prometheus deployment_
+* **PodMonitor**, describe how to match kubernetes PODs objects meant to be scraped. In my case it is used to collect
+  Kafka instances' metrics
+* **ServiceMonitor**, describe how to match kubernetes service objects meant to be scraped. In my case it is used to
+  collect microservices' metrics
+
+Following images are from Prometheus operator docs, they can help to understand the CRDs roles in the kubernetes
+namespace:
+
+### Architecture
+
+![Architecture](docs/media/metrics/prometheus-operator-crds-architecture.png)
+
+### Namespace view
+
+![Namespace view](docs/media/metrics/prometheus-operator-crds-namespace-view.png)
+
+Coming back to the **metrics dashboards**, in my cluster installation you will find the following ones:
 
 1) A _Kafka cluster_ monitoring dashboard
 2) A _Spring Boot services_ monitoring dashboard
@@ -72,6 +94,8 @@ and pushed against **Elasticsearch** where they are indexed and stored.
 
 **Kibana** instead, is the tool that lets us read, group, investigate, etc. such log entries them in a nice UI.
 
+![ELK stack](docs/media/logging/use-case-elk.png)
+
 My focus was to mainly show the business services logs, but you can have multiple views for other kind of logs:
 _kubernetes nodes, kafka cluster, MariaDB_, etc.
 
@@ -83,6 +107,8 @@ example:
 ## Tracing monitoring
 
 In order to store and show in a nice UI all the traces I decided to use **Zipkin Server**.
+
+![Zipkin - Use case](docs/media/tracing/use-case-zipkin.png)
 
 At the time I'm writing you can nicely see traces propagating through REST API, Kafka messages and JDBC calls.
 It means you can follow a whole "order" processing by its corresponding metrics even if few steps are asynchronous.
