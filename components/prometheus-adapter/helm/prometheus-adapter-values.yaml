@@ -1,0 +1,57 @@
+prometheus:
+  # Value is templated
+  url: http://kube-prometheus-stack-prometheus
+  port: 9090
+  path: "/prometheus-server"
+
+replicas: 1
+
+rules:
+  default: false
+  custom:
+    - seriesQuery: '{__name__=~"^http_server_requests_seconds_.*",job=~".*-service.*"}'
+      resources:
+        overrides:
+          namespace: { resource: "namespace" }
+          pod: { resource: "pod" }
+          service: { resource: "service" }
+      name:
+        matches: "^http_server_requests_seconds_count(.*)"
+        as: "request_orders_per_second"
+      # metricsQuery: rate(<<.Series>>{<<.LabelMatchers>>,uri=~"/orders.*"}[1m])
+      metricsQuery: sum(rate(<<.Series>>{<<.LabelMatchers>>,uri=~"/orders.*"}[1m])) by (<<.GroupBy>>)
+      # metricsQuery: sum by (job)(rate(<<.Series>>{<<.LabelMatchers>>,uri=~"/orders.*"}[1m])) by (<<.GroupBy>>)
+      #  metricsQuery: 'sum(rate(checkout_transactions_per_second[2m])) by (<<.GroupBy>>)'
+
+    - seriesQuery: '{__name__=~"^http_server_requests_seconds_.*",job=~".*-service.*"}'
+      resources:
+        overrides:
+          namespace: { resource: "namespace" }
+          pod: { resource: "pod" }
+          service: { resource: "service" }
+      name:
+        matches: "^http_server_requests_seconds_count(.*)"
+        as: "request_new_orders_per_second"
+      metricsQuery: sum(rate(<<.Series>>{<<.LabelMatchers>>,uri=~"/orders.*",method="POST"}[1m])) by (<<.GroupBy>>)
+
+    - seriesQuery: '{__name__="kafka_consumer_fetch_manager_records_consumed_rate",job=~".*-service.*"}'
+      resources:
+        overrides:
+          namespace: { resource: "namespace" }
+          pod: { resource: "pod" }
+          service: { resource: "service" }
+      name:
+        matches: "^kafka_consumer_fetch_manager_records_consumed_rate$"
+        as: "consumer_dan_client_orders_per_second"
+      metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>,topic="dan-client-orders"}) by (<<.GroupBy>>)
+
+    - seriesQuery: '{__name__="kafka_consumer_fetch_manager_records_consumed_rate",job=~".*-service.*"}'
+      resources:
+        overrides:
+          namespace: { resource: "namespace" }
+          pod: { resource: "pod" }
+          service: { resource: "service" }
+      name:
+        matches: "^kafka_consumer_fetch_manager_records_consumed_rate$"
+        as: "consumer_dan_street_orders_per_second"
+      metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>,topic="dan-street-orders"}) by (<<.GroupBy>>)
