@@ -238,5 +238,6 @@ Here are all the issues I needed to create or to deal with in my journey to nati
 * https://github.com/spring-projects/spring-boot/issues/40149
 * https://github.com/spring-projects/spring-boot/issues/40429
 * https://github.com/spring-projects/spring-boot/issues/33758
+* https://github.com/kubernetes-sigs/prometheus-adapter/issues/590
 * https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1350
 * https://stackoverflow.com/questions/78611781/spring-boot-native-image-how-to-remote-debug

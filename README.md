@@ -240,6 +240,10 @@ From the utility _kafka-pod_ located in this project _/support_ folder:
 
 * #### Jenkins docker DinD - try to keep docker images in order to improve build performance (while building docker image)
 
+
+* #### Evaluate JIB maven plugin to build / push docker images without relying on host machine docker daemon
+
+
 * #### ~~Fix Grafana dashboard imports from helm chart~~
 
   ~~https://github.com/grafana/helm-charts/issues/1385~~
@@ -256,5 +260,6 @@ From the utility _kafka-pod_ located in this project _/support_ folder:
 * https://peter.bourgon.org/blog/2017/02/21/metrics-tracing-and-logging.html
 * https://docs.spring.io/spring-boot/docs/current/reference/html/native-image.html
 * https://www.cloudkarafka.com/blog/apache-kafka-retention-and-segment-size-mistake.html
+* https://refactorizando.com/en/autoscaling-with-prometheus-and-spring-boot-in-kubernetes/
 * https://www.graalvm.org/22.3/reference-manual/native-image/guides/debug-native-image-process/
 * Actually many, many more I forgot to report here :)
