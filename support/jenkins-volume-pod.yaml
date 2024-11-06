@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jenkins-volume-pod
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu
+      command: [ "sleep" ]
+      args: [ "infinity" ]
+      volumeMounts:
+        - mountPath: "/jenkins-pvc"
+          name: jenkins-pvc
+  volumes:
+    - name: jenkins-pvc
+      persistentVolumeClaim:
+        claimName: jenkins-pvc

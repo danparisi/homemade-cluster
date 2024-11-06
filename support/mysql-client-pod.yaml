@@ -1,10 +1,61 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: mysql-client-pod
+  annotations:
+    meta.helm.sh/release-name: dan-gfm-service
+    meta.helm.sh/release-namespace: dan-ci-cd
+  labels:
+    app.kubernetes.io/instance: dan-gfm-service
+  name: dan-gfm-service
+  namespace: dan-ci-cd
 spec:
-  containers:
-    - name: mysql-client
-      image: imega/mysql-client
-      command: [ "sleep" ]
-      args: [ "infinity" ]
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: dan-gfm-service
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            ...
+          image: nexus-dan-docker-snapshot-http.k8s.local:30501/repository/docker/dan-gfm-service:0.0.1-SNAPSHOT
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health/ping
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+      imagePullSecrets:
+        - name: nexus-release-http-secret
+        - name: nexus-snapshot-http-secret
+      initContainers:
+        - command:
+            - sh
+            - -c
+            - until wget --timeout=2 --tries=1 -q nexus-rm:8081/nexus; do echo "Waiting
+              for Nexus to be ready"; sleep 2; done; echo "Nexus is ready!";
+          image: alpine:latest
+          imagePullPolicy: Always
+          name: check-nexus-ready
+          resources: { }
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dind
+  labels:
+    dind: dind
+spec:
+  containers:
+    - name: dind
+      image: docker:dind-rootless
+      tty: true
+      securityContext:
+        runAsUser: 0
+        privileged: true
+      #        allowPrivilegeEscalation: false
+      command: [ "dockerd", "--host", "tcp://127.0.0.1:2375", "--debug",
+                 "--registry-mirror", "http://nexus-docker-proxy-http:30400",
+                 "--insecure-registry", "nexus-docker-proxy-http:30400",
+                 "--insecure-registry", "nexus-dan-helm-release-http:30600",
+                 "--insecure-registry", "nexus-dan-helm-snapshot-http:30601",
+                 "--insecure-registry", "nexus-dan-docker-release-http:30500",
+                 "--insecure-registry", "nexus-dan-docker-snapshot-http:30501"
+      ]
+      ports:
+        - containerPort: 2375
+      env:
+        - name: DOCKER_HOST
+          value: "tcp://127.0.0.1:2375"
+      #      volumeMounts:
+      #        - mountPath: "/tmp"
+      #          name: jenkins-docker-cache-pvc
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 1
+          memory: 4Gi
