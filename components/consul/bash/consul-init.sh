@@ -30,30 +30,10 @@ function putKeyValue() {
   common::log "Executed PUT against [${apiUri}]: ${putResult}";
 }
 
-CLUSTER_TYPE=-1
 
-set +u
- while :
- do
-     case $1 in
-         --microk8s)
-              CLUSTER_TYPE="microk8s"
-              ;;
-         --minikube)
-              CLUSTER_TYPE="minikube"
-              ;;
-        *)               # Default case: No more options, so break out of the loop.
-             break
-     esac
-     shift
- done
- set -u
-
-if [ "$CLUSTER_TYPE" == -1 ]
-then
+if [ -z ${CLUSTER_TYPE+x} ]; then
   common::die "Cluster type option is mandatory (--microk8s or --minikube)"
 fi
-
 
 if [ "$CLUSTER_TYPE" == "minikube" ]
 then
@@ -74,10 +54,10 @@ else
   common::die "Cluster type value [${CLUSTER_TYPE}] is unexpected"
 fi
 
-CONSUL_URL="http://k8s.local/consul-ui/dc1/services"
+CONSUL_URL="http://localhost:8500/consul-ui/dc1/services"
 
 common::log "Waiting for Consul to be ready..."
-while [ "$(curl -s -o /dev/null -w "%{http_code}" ${CONSUL_URL})" != 200 ];
+while [ "$(my_kubectl exec consul-server-0 -c consul -- curl -s -o /dev/null -w "%{http_code}" ${CONSUL_URL})" != 200 ];
 do echo -n "."; sleep 2 ; done
 echo ""
 common::log "Consul is ready!"

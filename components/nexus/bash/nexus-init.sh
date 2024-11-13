@@ -24,12 +24,12 @@ function postNewRepositoryIfNotFound() {
   repositoryName=$2
   jsonBodyFile="${repositoryName}.json"
   apiCallUri=${NEXUS_API_BASE_PATH}${endpoint}
-  getResult=$(curl -s -o /dev/null -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" "${apiCallUri}/${repositoryName}")
+  getResult=$(my_kubectl exec svc/nexus-rm -- curl -s -o /dev/null -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" "${apiCallUri}/${repositoryName}")
 
   if [ "$getResult" != 200 ]
   then
     local postResult;
-    postResult=$(curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -X POST -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
+    postResult=$(my_kubectl exec svc/nexus-rm -- curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -X POST -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
 
     common::log "Executed POST against [${endpoint}]: ${postResult}";
   else
@@ -47,7 +47,7 @@ function put() {
   jsonBodyFile=$2
   apiCallUri=${NEXUS_API_BASE_PATH}${endpoint}
 
-  putResult=$(curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X PUT -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
+  putResult=$(my_kubectl exec svc/nexus-rm -- curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X PUT -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
 
   common::log "Executed PUT against [${endpoint}]: ${putResult}";
 }
@@ -62,35 +62,15 @@ function post() {
   jsonBodyFile=$2
   apiCallUri=${NEXUS_API_BASE_PATH}${endpoint}
 
-  putResult=$(curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
+  putResult=$(my_kubectl exec svc/nexus-rm -- curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
 
   common::log "Executed PUT against [${endpoint}]: ${putResult}";
 }
 
-CLUSTER_TYPE=-1
 
-set +u
- while :
- do
-     case $1 in
-         --microk8s)
-              CLUSTER_TYPE="microk8s"
-              ;;
-         --minikube)
-              CLUSTER_TYPE="minikube"
-              ;;
-        *)               # Default case: No more options, so break out of the loop.
-             break
-     esac
-     shift
- done
- set -u
-
-if [ "$CLUSTER_TYPE" == -1 ]
-then
+if [ -z ${CLUSTER_TYPE+x} ]; then
   common::die "Cluster type option is mandatory (--microk8s or --minikube)"
 fi
-
 
 if [ "$CLUSTER_TYPE" == "minikube" ]
 then
@@ -111,11 +91,11 @@ else
   common::die "Cluster type value [${CLUSTER_TYPE}] is unexpected"
 fi
 
-NEXUS_URL="http://k8s.local/nexus/"
+NEXUS_URL="http://localhost:8081/nexus/"
 NEXUS_API_BASE_PATH="${NEXUS_URL}service/rest"
 
 common::log "Waiting for Nexus cluster to be ready..."
-while [ "$(curl -s -o /dev/null -w "%{http_code}" ${NEXUS_URL})" != 200 ];
+while [ "$(my_kubectl exec svc/nexus-rm -- curl -s -o /dev/null -w "%{http_code}" ${NEXUS_URL})" != 200 ];
 do echo -n "."; sleep 2 ; done
 echo ""
 common::log "Nexus cluster is ready!"

@@ -3,9 +3,6 @@
 set -e
 set -o errexit
 set -o nounset
-
-PROJECT_DIRECTORY=$(pwd | sed 's/\(.*homemade-cluster\).*/\1/')
-
 source "$PROJECT_DIRECTORY/common/common.sh"
 
 

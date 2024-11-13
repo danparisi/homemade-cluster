@@ -4,31 +4,12 @@ set -e
 set -o errexit
 set -o nounset
 shopt -s expand_aliases
-
-PROJECT_DIRECTORY=$(pwd | sed 's/\(.*homemade-cluster\).*/\1/')
-
 source "$PROJECT_DIRECTORY/common/common.sh"
 
-set +u
- while :
- do
-     case $1 in
-         --microk8s)
-              CLUSTER_TYPE="microk8s"
-              ;;
-         --minikube)
-              CLUSTER_TYPE="minikube"
-              ;;
-         -i|--info)
-              bash $PROJECT_DIRECTORY/cluster/parts/info.sh --$CLUSTER_TYPE
-              exit
-              ;;
-        *) # Default case: No more options, so break out of the loop.
-             break
-     esac
-     shift
- done
- set -u
+
+if [ -z ${CLUSTER_TYPE+x} ]; then
+  common::die "Cluster type option is mandatory (--microk8s or --minikube)"
+fi
 
 if [ "$CLUSTER_TYPE" == "minikube" ]
 then
