@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set +u
 set -o errexit
 set -o nounset
 shopt -s expand_aliases
@@ -8,30 +9,10 @@ shopt -s expand_aliases
 PROJECT_DIRECTORY=$(pwd | sed 's/\(.*homemade-cluster\).*/\1/')
 SCRIPT_DIRECTORY="$PROJECT_DIRECTORY/components/elk/bash"
 
-CLUSTER_TYPE=-1
 
-set +u
- while :
- do
-     case $1 in
-         --microk8s)
-              CLUSTER_TYPE="microk8s"
-              ;;
-         --minikube)
-              CLUSTER_TYPE="minikube"
-              ;;
-        *)               # Default case: No more options, so break out of the loop.
-             break
-     esac
-     shift
- done
- set -u
-
-if [ "$CLUSTER_TYPE" == -1 ]
-then
+if [ -z ${CLUSTER_TYPE+x} ]; then
   common::die "Cluster type option is mandatory (--microk8s or --minikube)"
 fi
-
 
 if [ "$CLUSTER_TYPE" == "minikube" ]
 then
@@ -53,7 +34,7 @@ else
 fi
 
 
-KIBANA_URL="http://k8s.local/kibana/"
+KIBANA_URL="http://localhost:5601/kibana/"
 KIBANA_API_BASE_PATH="${KIBANA_URL}api/"
 
 KIBANA_USER='elastic'
@@ -63,7 +44,7 @@ source "$PROJECT_DIRECTORY/common/common.sh"
 
 function kibanaClusterIsUp() {
   local httpCode;
-  httpCode="$(curl -s -o /dev/null -w "%{http_code}" ${KIBANA_URL})"
+  httpCode="$(my_kubectl exec svc/kibana-kb-http -c kibana -- curl -s -o /dev/null -w "%{http_code}" ${KIBANA_URL})"
 
   if [ "${httpCode}" -lt 200 ] || [ "${httpCode}" -gt 399 ]; then
     return 1;
@@ -85,7 +66,7 @@ function postNewDataView() {
   apiCallUri=${KIBANA_API_BASE_PATH}${endpoint}
 
   local postResult;
-  postResult=$(curl -s -o /dev/null -w "%{http_code}" -u ${KIBANA_USER}:${KIBANA_PASSWORD} -X POST -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
+  postResult=$(my_kubectl exec svc/kibana-kb-http -c kibana -- curl -s -o /dev/null -w "%{http_code}" -u ${KIBANA_USER}:${KIBANA_PASSWORD} -X POST -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
 
   common::log "Executed POST against [${apiCallUri}]: ${postResult}";
 }

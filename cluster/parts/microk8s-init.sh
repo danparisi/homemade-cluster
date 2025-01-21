@@ -3,9 +3,6 @@
 set -e
 set -o errexit
 set -o nounset
-
-PROJECT_DIRECTORY=$(pwd | sed 's/\(.*homemade-cluster\).*/\1/')
-
 source "$PROJECT_DIRECTORY/common/common.sh"
 
 
@@ -24,36 +21,35 @@ microk8s enable hostpath-storage
 common::log "Enabling microk8s metrics-server addon..."
 microk8s enable metrics-server
 
+if [ "$SKIP_INSECURE_REGISTRY" = false ] ; then
+  DOCKER_RELEASE_HTTP=/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-release-http.k8s.local:30500/hosts.toml
+  if [ -f "$DOCKER_RELEASE_HTTP" ]; then
+    common::log "Skipping insecure registries configuration for http://nexus-dan-docker-release-http.k8s.local:30500 as already exists"
+  else
+    common::log "Adding insecure registries configuration for http://nexus-dan-docker-release-http.k8s.local:30500..."
 
-DOCKER_RELEASE_HTTP=/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-release-http.k8s.local:30500/hosts.toml
-if [ -f "$DOCKER_RELEASE_HTTP" ]; then
-  common::log "Skipping insecure registries configuration for http://nexus-dan-docker-release-http.k8s.local:30500 as already exists"
-else
-  common::log "Adding insecure registries configuration for http://nexus-dan-docker-release-http.k8s.local:30500..."
+    sudo mkdir -p /var/snap/microk8s/current/args/certs.d/nexus-dan-docker-release-http.k8s.local:30500
+    sudo cat <<EOF >"/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-release-http.k8s.local:30500/hosts.toml"
+      server = "http://nexus-dan-docker-release-http.k8s.local:30500"
 
-  sudo mkdir -p /var/snap/microk8s/current/args/certs.d/nexus-dan-docker-release-http.k8s.local:30500
-  sudo cat <<EOF >"/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-release-http.k8s.local:30500/hosts.toml"
-    server = "http://nexus-dan-docker-release-http.k8s.local:30500"
+      [host."nexus-dan-docker-release-http.k8s.local:30500"]
+      capabilities = ["pull", "resolve"]
+EOF
+  fi
 
-    [host."nexus-dan-docker-release-http.k8s.local:30500"]
+
+  DOCKER_SNAPSHOT_HTTP=/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-snapshot-http.k8s.local:30501/hosts.toml
+  if [ -f "$DOCKER_SNAPSHOT_HTTP" ]; then
+    common::log "Skipping insecure registries configuration for http://nexus-dan-docker-snapshot-http.k8s.local:30501 as already exists"
+  else
+    common::log "Adding insecure registries configuration for http://nexus-dan-docker-snapshot-http.k8s.local:30501..."
+
+    sudo mkdir -p /var/snap/microk8s/current/args/certs.d/nexus-dan-docker-snapshot-http.k8s.local:30501
+    sudo cat <<EOF >"/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-snapshot-http.k8s.local:30501/hosts.toml"
+    server = "http://nexus-dan-docker-snapshot-http.k8s.local:30501"
+
+    [host."nexus-dan-docker-snapshot-http.k8s.local:30501"]
     capabilities = ["pull", "resolve"]
 EOF
-
-fi
-
-
-DOCKER_SNAPSHOT_HTTP=/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-snapshot-http.k8s.local:30501/hosts.toml
-if [ -f "$DOCKER_SNAPSHOT_HTTP" ]; then
-  common::log "Skipping insecure registries configuration for http://nexus-dan-docker-snapshot-http.k8s.local:30501 as already exists"
-else
-  common::log "Adding insecure registries configuration for http://nexus-dan-docker-snapshot-http.k8s.local:30501..."
-
-  sudo mkdir -p /var/snap/microk8s/current/args/certs.d/nexus-dan-docker-snapshot-http.k8s.local:30501
-  sudo cat <<EOF >"/var/snap/microk8s/current/args/certs.d/nexus-dan-docker-snapshot-http.k8s.local:30501/hosts.toml"
-  server = "http://nexus-dan-docker-snapshot-http.k8s.local:30501"
-
-  [host."nexus-dan-docker-snapshot-http.k8s.local:30501"]
-  capabilities = ["pull", "resolve"]
-EOF
-
+  fi
 fi

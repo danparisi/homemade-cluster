@@ -72,30 +72,9 @@ function post() {
   common::log "Executed PUT against [${endpoint}]: ${putResult}";
 }
 
-CLUSTER_TYPE=-1
-
-set +u
- while :
- do
-     case $1 in
-         --microk8s)
-              CLUSTER_TYPE="microk8s"
-              ;;
-         --minikube)
-              CLUSTER_TYPE="minikube"
-              ;;
-        *)               # Default case: No more options, so break out of the loop.
-             break
-     esac
-     shift
- done
- set -u
-
-if [ "$CLUSTER_TYPE" == -1 ]
-then
+if [ -z ${CLUSTER_TYPE+x} ]; then
   common::die "Cluster type option is mandatory (--microk8s or --minikube)"
 fi
-
 
 if [ "$CLUSTER_TYPE" == "minikube" ]
 then
