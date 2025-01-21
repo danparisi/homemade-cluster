@@ -24,12 +24,14 @@ function postNewRepositoryIfNotFound() {
   repositoryName=$2
   jsonBodyFile="${repositoryName}.json"
   apiCallUri=${NEXUS_API_BASE_PATH}${endpoint}
-  getResult=$(curl -s -o /dev/null -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" "${apiCallUri}/${repositoryName}")
+  getResult=$(kubectl exec svc/nexus-rm -- bash -c "curl -s -o /dev/null -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" ${apiCallUri}/${repositoryName}")
 
   if [ "$getResult" != 200 ]
   then
+    local body;
     local postResult;
-    postResult=$(curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -X POST -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
+    body=$(<"$SCRIPT_DIRECTORY/${jsonBodyFile}")
+    postResult=$(kubectl exec svc/nexus-rm -- bash -c "curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -X POST -H 'Content-Type: application/json' --data '${body}' ${apiCallUri}")
 
     common::log "Executed POST against [${endpoint}]: ${postResult}";
   else
@@ -47,7 +49,10 @@ function put() {
   jsonBodyFile=$2
   apiCallUri=${NEXUS_API_BASE_PATH}${endpoint}
 
-  putResult=$(curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X PUT -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
+  local body;
+
+  body=$(<"$SCRIPT_DIRECTORY/${jsonBodyFile}")
+  putResult=$(kubectl exec svc/nexus-rm -- bash -c "curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X PUT -H 'Content-Type: application/json' --data '${body}' ${apiCallUri}")
 
   common::log "Executed PUT against [${endpoint}]: ${putResult}";
 }
@@ -62,7 +67,7 @@ function post() {
   jsonBodyFile=$2
   apiCallUri=${NEXUS_API_BASE_PATH}${endpoint}
 
-  putResult=$(curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
+  putResult=$(curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X POST -H 'Content-Type: application/json' -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
 
   common::log "Executed PUT against [${endpoint}]: ${putResult}";
 }
@@ -98,30 +103,26 @@ then
     common::die "It seems minikube is not up and running."
   fi
 
-  alias my_kubectl="kubectl"
-
 elif [ "$CLUSTER_TYPE" == "microk8s" ]
 then
   if [[ $(microk8s status) == *"microk8s is not running"* ]]; then
     common::die "It seems microk8s is not up and running."
   fi
-
-  alias my_kubectl="microk8s kubectl"
 else
   common::die "Cluster type value [${CLUSTER_TYPE}] is unexpected"
 fi
 
-NEXUS_URL="http://k8s.local/nexus/"
+NEXUS_URL="http://localhost:8081/nexus/"
 NEXUS_API_BASE_PATH="${NEXUS_URL}service/rest"
 
 common::log "Waiting for Nexus cluster to be ready..."
-while [ "$(curl -s -o /dev/null -w "%{http_code}" ${NEXUS_URL})" != 200 ];
+while [ "$(kubectl exec svc/nexus-rm -- bash -c "curl -s -o /dev/null -w \"%{http_code}\" ${NEXUS_URL}")" != 200 ];
 do echo -n "."; sleep 2 ; done
 echo ""
 common::log "Nexus cluster is ready!"
 
 NEXUS_USER="admin"
-NEXUS_PASSWORD=$(my_kubectl exec svc/nexus-rm -- bash -c 'if test -f /nexus-data/admin.password; then /bin/cat /nexus-data/admin.password && echo; else echo "admin"; fi')
+NEXUS_PASSWORD=$(kubectl exec svc/nexus-rm -- bash -c 'if test -f /nexus-data/admin.password; then /bin/cat /nexus-data/admin.password && echo; else echo "admin"; fi')
 
 common::log "Creating docker proxy repository..."
 postNewRepositoryIfNotFound "/v1/repositories/docker/proxy" "nexus-docker-proxy-http"
