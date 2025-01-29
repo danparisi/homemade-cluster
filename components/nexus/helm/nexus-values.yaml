@@ -5,23 +5,23 @@ nameOverride: nexus
 #  type: NodePort
 
 ingress:
-  enabled: false
-  ingressClassName: nginx
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  enabled: true
   hostPath: /nexus
-  hostRepo: k8s.local
-    #  tls:
-  #    - hosts:
-  #        - k8s.local
-  # tls:
-  #   - secretName: nexus-local-tls
-#  enabled: true
-#  paths: k8s.local
+  paths: master.k8s.local
+  hostRepo: master.k8s.local
+#  apiVersion: "networking.k8s.io/v1"
+#  ingressClassName: nginx
+#  annotations:
+#    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+#    #  tls:
+#  #    - hosts:
+#  #        - k8s.local
+#  # tls:
+#  #   - secretName: nexus-local-tls
 
 persistence:
   enabled: true
-  storageSize: 15Gi
+  storageSize: 5Gi
   existingClaim: nexus-pvc
 
 nexus:
@@ -44,7 +44,7 @@ nexus:
       cpu: 0.5
       memory: 512Mi
     limits:
-      cpu: 4
+      cpu: 1.5
       memory: 1.5Gi
   livenessProbe:
     path: "/nexus"
@@ -52,3 +52,5 @@ nexus:
   readinessProbe:
     path: "/nexus"
     initialDelaySeconds: 120
+  nodeSelector:
+    node-role.kubernetes.io/master: master

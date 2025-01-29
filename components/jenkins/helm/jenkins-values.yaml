@@ -2,9 +2,10 @@ fsGroup: 0
 runAsUser: 0
 
 controller:
-  jenkinsUriPrefix: "/jenkins"
   serviceType: ClusterIP
-  jenkinsUrl: http://k8s.local/jenkins/
+  jenkinsUrlProtocol: http
+  jenkinsUriPrefix: "/jenkins"
+  jenkinsUrl: http://master.k8s.local/jenkins/
   podSecurityContextOverride:
     runAsUser: 1000
     runAsGroup: 1000
@@ -27,12 +28,13 @@ controller:
       timeoutSeconds: 5
       failureThreshold: 12
       initialDelaySeconds: 30
-
+  nodeSelector:
+    node-role.kubernetes.io/master: master
   ingress:
-    enabled: false
-  #    paths: [ ]
-  #    apiVersion: "networking.k8s.io/v1"
-  #    hostName: k8s.local
+    enabled: true
+    path: "/jenkins"
+    apiVersion: "networking.k8s.io/v1"
+    hostName: master.k8s.local
 
   installPlugins:
     - git:latest
