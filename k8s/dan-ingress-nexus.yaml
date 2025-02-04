@@ -1,0 +1,65 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dan-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  #  defaultBackend:
+  #    service:
+  #      name: default-http-backend
+  #      port:
+  #        number: 80
+  rules:
+    - host: nexus-docker-proxy-http.k8s.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-docker-proxy-http
+                port:
+                  number: 30400
+    - host: nexus-dan-docker-release-http.k8s.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-dan-docker-release-http
+                port:
+                  number: 30500
+    - host: nexus-dan-docker-snapshot-http.k8s.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-dan-docker-snapshot-http
+                port:
+                  number: 30501
+
+    - host: nexus-dan-helm-release-http.k8s.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-dan-helm-release-http
+                port:
+                  number: 30600
+    - host: nexus-dan-helm-snapshot-http.k8s.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nexus-dan-helm-snapshot-http
+                port:
+                  number: 30601

@@ -57,6 +57,10 @@ fi
 CONSUL_URL="http://localhost:8500/consul-ui/dc1/services"
 
 common::log "Waiting for Consul to be ready..."
+# Checking consul pod has a host assigned, otherwise we get a kubectl error
+while ! my_kubectl exec consul-server-0 -c consul -- curl -s -o /dev/null ${CONSUL_URL}
+do echo -n "."; sleep 2 ; done
+
 while [ "$(my_kubectl exec consul-server-0 -c consul -- curl -s -o /dev/null -w "%{http_code}" ${CONSUL_URL})" != 200 ];
 do echo -n "."; sleep 2 ; done
 echo ""

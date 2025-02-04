@@ -26,8 +26,13 @@ if [[ $MICROK8S_STATUS == *"is not running"* ]]; then
   $SUDO_COMMAND microk8s start
 fi
 
+common::log "Refreshing server.crt..."
 $SUDO_COMMAND microk8s refresh-certs -e server.crt
+
+common::log "Refreshing front-proxy-client.crt..."
 $SUDO_COMMAND microk8s refresh-certs -e front-proxy-client.crt
+
+common::log "Refreshing ca.crt..."
 $SUDO_COMMAND microk8s refresh-certs -e ca.crt
 
 microk8s kubectl config set-context --current --namespace=dan-ci-cd

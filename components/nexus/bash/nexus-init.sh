@@ -33,7 +33,7 @@ function postNewRepositoryIfNotFound() {
     body=$(<"$SCRIPT_DIRECTORY/${jsonBodyFile}")
     postResult=$(kubectl exec svc/nexus-rm -- bash -c "curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -X POST -H 'Content-Type: application/json' --data '${body}' ${apiCallUri}")
 
-    common::log "Executed POST against [${endpoint}]: ${postResult}";
+    common::log "Executed POST against [${endpoint}] with input [${body}]: ${postResult}";
   else
     common::warn "Repository [${repositoryName}] already exists."
   fi
@@ -54,22 +54,22 @@ function put() {
   body=$(<"$SCRIPT_DIRECTORY/${jsonBodyFile}")
   putResult=$(kubectl exec svc/nexus-rm -- bash -c "curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X PUT -H 'Content-Type: application/json' --data '${body}' ${apiCallUri}")
 
-  common::log "Executed PUT against [${endpoint}]: ${putResult}";
+  common::log "Executed PUT against [${endpoint}] with input [${body}]: ${putResult}";
 }
 
 # Args: endpoint, jsonBodyFile
 function post() {
   local endpoint;
   local apiCallUri;
-  local putResult;
+  local postResult;
   local jsonBodyFile;
   endpoint=$1
   jsonBodyFile=$2
   apiCallUri=${NEXUS_API_BASE_PATH}${endpoint}
+  body=$(<"$SCRIPT_DIRECTORY/${jsonBodyFile}")
+  postResult=$(kubectl exec svc/nexus-rm -- bash -c "curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X POST -H 'Content-Type: application/json' --data '${body}' ${apiCallUri}")
 
-  putResult=$(curl -s -u ${NEXUS_USER}:${NEXUS_PASSWORD} -w "%{http_code}" -X POST -H 'Content-Type: application/json' -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
-
-  common::log "Executed PUT against [${endpoint}]: ${putResult}";
+  common::log "Executed POST against [${endpoint}] with input [@$SCRIPT_DIRECTORY/${jsonBodyFile}]: ${postResult}";
 }
 
 if [ -z ${CLUSTER_TYPE+x} ]; then
@@ -95,6 +95,10 @@ NEXUS_URL="http://localhost:8081/nexus/"
 NEXUS_API_BASE_PATH="${NEXUS_URL}service/rest"
 
 common::log "Waiting for Nexus cluster to be ready..."
+# Checking nexus pod has a host assigned, otherwise we get a kubectl error
+while ! kubectl exec svc/nexus-rm -- bash -c "curl -s -o /dev/null ${NEXUS_URL}"
+do echo -n "."; sleep 2 ; done
+
 while [ "$(kubectl exec svc/nexus-rm -- bash -c "curl -s -o /dev/null -w \"%{http_code}\" ${NEXUS_URL}")" != 200 ];
 do echo -n "."; sleep 2 ; done
 echo ""

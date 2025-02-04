@@ -24,14 +24,16 @@ function postNewJobIfNotFound() {
   local jobName;
   jobName=$1
   xmlBodyFile="${jobName}.xml"
-  getResult=$(curl -s -o /dev/null -u ${JENKINS_USER}:11149d32de225c827c8a4841d3ad7bfc78 -w "%{http_code}" "${JENKINS_JOB_PATH}/${jobName}/config.xml")
+  getResult=$(kubectl exec svc/jenkins -c jenkins -- bash -c "curl -s -o /dev/null -u ${JENKINS_USER}:11149d32de225c827c8a4841d3ad7bfc78 -w "%{http_code}" ${JENKINS_JOB_PATH}/${jobName}/config.xml")
 
   if [ "$getResult" != 200 ]
   then
-    local postResult;
-    postResult=$(curl -s -u ${JENKINS_USER}:${JENKINS_PASSWORD} -X POST -H "Content-Type: application/xml" -d "@$SCRIPT_DIRECTORY/${xmlBodyFile}" "${JENKINS_CREATE_ITEM_PATH}?name=${jobName}")
+    local body;
+    local putResult;
+    body=$(<"$SCRIPT_DIRECTORY/${xmlBodyFile}")
+    putResult=$(kubectl exec svc/jenkins -c jenkins -- bash -c "curl -s -u ${JENKINS_USER}:${JENKINS_PASSWORD} -X POST -H 'Content-Type: application/xml' --data '${body}' ${JENKINS_CREATE_ITEM_PATH}?name=${jobName}")
 
-    common::log "Executed POST against [${JENKINS_CREATE_ITEM_PATH}]: ${postResult}";
+    common::log "Executed POST against [${JENKINS_CREATE_ITEM_PATH}]: ${putResult}";
   else
     common::warn "Repository [${jobName}] already exists."
   fi
@@ -46,8 +48,8 @@ function put() {
   endpoint=$1
   jsonBodyFile=$2
   apiCallUri=${JENKINS_JOB_PATH}${endpoint}
-
-  putResult=$(curl -s -u ${JENKINS_USER}:${JENKINS_PASSWORD} -w "%{http_code}" -X PUT -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
+  body=$(<"$SCRIPT_DIRECTORY/${jsonBodyFile}")
+  putResult=$(kubectl exec svc/jenkins -c jenkins -- bash -c "curl -s -u ${JENKINS_USER}:${JENKINS_PASSWORD} -w "%{http_code}" -X PUT -H 'Content-Type: application/json' --data '${body}' ${apiCallUri}")
 
   common::log "Executed PUT against [${endpoint}]: ${putResult}";
 }
@@ -61,10 +63,10 @@ function post() {
   endpoint=$1
   jsonBodyFile=$2
   apiCallUri=${JENKINS_JOB_PATH}${endpoint}
+  body=$(<"$SCRIPT_DIRECTORY/${jsonBodyFile}")
+  putResult=$(kubectl exec svc/jenkins -c jenkins -- bash -c "curl -s -u ${JENKINS_USER}:${JENKINS_PASSWORD} -w "%{http_code}" -X POST -H 'Content-Type: application/json' --data '${body}' ${apiCallUri}")
 
-  putResult=$(curl -s -u ${JENKINS_USER}:${JENKINS_PASSWORD} -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "@$SCRIPT_DIRECTORY/${jsonBodyFile}" "${apiCallUri}")
-
-  common::log "Executed PUT against [${endpoint}]: ${putResult}";
+  common::log "Executed POST against [${endpoint}]: ${putResult}";
 }
 
 CLUSTER_TYPE=-1
@@ -97,33 +99,32 @@ then
   if [[ $(my_minikube status --format='{{.Host}}') != 'Running' ]]; then
     common::die "It seems minikube is not up and running."
   fi
-
-  CLUSTER_IP=$(my_minikube ip)
-
 elif [ "$CLUSTER_TYPE" == "microk8s" ]
 then
   if [[ $(microk8s status) == *"microk8s is not running"* ]]; then
     common::die "It seems microk8s is not up and running."
   fi
-
-  CLUSTER_IP="127.0.0.1"
 else
   common::die "Cluster type value [${CLUSTER_TYPE}] is unexpected"
 fi
 
-JENKINS_PORT=32000
-JENKINS_URL="http://${CLUSTER_IP}:${JENKINS_PORT}"
-JENKINS_JOB_PATH="${JENKINS_URL}/job"
-JENKINS_CREATE_ITEM_PATH="${JENKINS_URL}/createItem"
+JENKINS_URL="http://localhost:8080/jenkins/"
+JENKINS_JOB_PATH="${JENKINS_URL}job"
+JENKINS_URL_LOGIN="${JENKINS_URL}login"
+JENKINS_CREATE_ITEM_PATH="${JENKINS_URL}createItem"
 
 common::log "Waiting for Jenkins to be ready..."
-while [ "$(curl -s -o /dev/null -w "%{http_code}" ${JENKINS_URL}/login)" != 200 ];
+# Checking jenkins pod has a host assigned, otherwise we get a kubectl error
+while ! kubectl exec svc/jenkins -c jenkins -- bash -c "curl -s -o /dev/null ${JENKINS_URL}"
+do echo -n "."; sleep 2 ; done
+
+while [ "$(kubectl exec svc/jenkins -c jenkins -- bash -c "curl -s -o /dev/null -w \"%{http_code}\" ${JENKINS_URL_LOGIN}")" != 200 ];
 do echo -n "."; sleep 2 ; done
 echo ""
 common::log "Jenkins is ready!"
 
 JENKINS_USER="admin"
-JENKINS_PASSWORD=$(my_kubectl exec -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo)
+JENKINS_PASSWORD=$(kubectl exec -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo)
 
 common::log "Creating job dan-service-starter-parent..."
 postNewJobIfNotFound "dan-service-starter-parent"

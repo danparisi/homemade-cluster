@@ -32,9 +32,10 @@ controller:
     node-role.kubernetes.io/master: master
   ingress:
     enabled: true
-    path: "/jenkins"
-    apiVersion: "networking.k8s.io/v1"
+    paths:
+      - /jenkins
     hostName: master.k8s.local
+  #    apiVersion: "networking.k8s.io/v1"
 
   installPlugins:
     - git:latest

@@ -1,4 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
+<?xml version="1.1" encoding="UTF-8"?>
 <flow-definition plugin="workflow-job@1360.vc6700e3136f5">
     <actions>
         <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction
