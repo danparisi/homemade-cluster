@@ -24,7 +24,7 @@ function postNewJobIfNotFound() {
   local jobName;
   jobName=$1
   xmlBodyFile="${jobName}.xml"
-  getResult=$(kubectl exec svc/jenkins -c jenkins -- bash -c "curl -s -o /dev/null -u ${JENKINS_USER}:11149d32de225c827c8a4841d3ad7bfc78 -w "%{http_code}" ${JENKINS_JOB_PATH}/${jobName}/config.xml")
+  getResult=$(kubectl exec svc/jenkins -c jenkins -- bash -c "curl -s -o /dev/null -u ${JENKINS_USER}:${JENKINS_PASSWORD} -w "%{http_code}" ${JENKINS_JOB_PATH}/${jobName}/config.xml")
 
   if [ "$getResult" != 200 ]
   then
