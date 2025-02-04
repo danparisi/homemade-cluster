@@ -244,6 +244,9 @@ From the utility _kafka-pod_ located in this project _/support_ folder:
 * #### Evaluate JIB maven plugin to build / push docker images without relying on host machine docker daemon
 
 
+* #### Fix potential issue in the Gateway according to this: https://github.com/spring-projects/spring-boot/pull/15609
+
+
 * #### ~~Fix Grafana dashboard imports from helm chart~~
 
   ~~https://github.com/grafana/helm-charts/issues/1385~~
