@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+  labels:
+    app.kubernetes.io/name: nautica-core
+    app.kubernetes.io/instance: nautica-core
+  name: nautica-core
+  namespace: dan-ci-cd
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: nautica.k8s.local
+    http:
+      paths:
+      - backend:
+          service:
+            name: nautica-core
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix

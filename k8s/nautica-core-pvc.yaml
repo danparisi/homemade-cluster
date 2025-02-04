@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nautica-core-pvc
+  namespace: dan-ci-cd
+spec:
+  # storageClassName: manual
+  selector:
+    matchLabels:
+      app: nautica-core
+      scope: core
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
