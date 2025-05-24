@@ -140,8 +140,11 @@ Install the SSH server:
 Create the SSH keys:
 > ssh-keygen -t rsa
 
-Securely copy the _id_rsa.pub_ in any client machine you want to connect against the master node. Then execute:
+Securely copy the _id_rsa.pub_ into  ~/.ssh in any client machine you want to connect against the master node. Then execute:
 > ssh-copy-id username@remotehost
+
+or in case of errors:
+> ssh-copy-id -f -i id_rsa.pub username@remotehost
 
 By now, you should be able to connect against the master node from the client by running:
 > ssh username@remotehost
