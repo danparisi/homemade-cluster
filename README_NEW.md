@@ -161,6 +161,17 @@ By now, you should be able to connect against the master node from the client by
 
 [//]: # (graphical interface.)
 
+###### SSH connection troubleshooting
+
+In case the ssh connection gets stuck on the client side while trying to connect to the server and this is the output:
+>  $ ssh daniele@asus-r420ma -v
+>  ...
+> debug1: expecting SSH2_MSG_KEX_ECDH_REPLY
+
+You need to create the file _~/.ssh/config_:
+> KexAlgorithms=ecdh-sha2-nistp521
+
+
 #### Configuring the worker nodes
 
 ##### Ubuntu linux based machines
